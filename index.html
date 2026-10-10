@@ -7,7 +7,6 @@
   <link rel="icon" href="data:,">
   <title>奶蛙拳皇</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500;700;900&family=ZCOOL+KuaiLe&display=swap');
     :root{
       color-scheme:light dark;
       --ink:#172137;--muted:#5e6880;--paper:#f5f7fb;--panel:#ffffff;--line:#d6deeb;
@@ -21,7 +20,7 @@
       --shadow:0 18px 55px rgba(0,0,0,.4);
     }}
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:"Noto Sans SC",sans-serif;overscroll-behavior:none}
+    html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:"Microsoft YaHei","PingFang SC",sans-serif;overscroll-behavior:none}
     button{font:inherit;color:inherit}
     button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
     .screen{min-height:100dvh}
@@ -32,7 +31,7 @@
       radial-gradient(circle at 75% 8%,rgba(255,210,41,.28),transparent 28%),
       linear-gradient(180deg,var(--paper),color-mix(in srgb,var(--paper) 88%,var(--cyan)))}
     .select-head{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:end;margin:0 0 24px}
-    .select-head h1{font-family:"ZCOOL KuaiLe","Noto Sans SC",sans-serif;font-size:clamp(34px,7vw,74px);line-height:.96;margin:4px 0 12px;letter-spacing:-.04em;max-width:720px}
+    .select-head h1{font-family:"STKaiti","KaiTi","Microsoft YaHei",sans-serif;font-size:clamp(34px,7vw,74px);line-height:.96;margin:4px 0 12px;letter-spacing:-.04em;max-width:720px}
     .select-head p{margin:0;color:var(--muted);font-size:clamp(14px,2vw,18px)}
     .laugh-preview{width:100px;height:133px;background:url('assets/laugh-preview.webp') 0 50%/2000% 100% no-repeat;animation:laughFrames 1.35s steps(19) infinite;filter:drop-shadow(0 10px 10px rgba(0,0,0,.16))}
     @keyframes laughFrames{to{background-position:100% 50%}}
@@ -56,6 +55,19 @@
     .start-btn{width:100%;margin-top:16px;padding:14px 18px;border:0;border-radius:12px;background:var(--red);color:#fff;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 6px 0 #a51d2a;transform:translateY(-2px)}
     .start-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #a51d2a}
     .key-help{font-size:11px!important;margin-top:14px!important;line-height:1.6}
+    .mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:14px 0 6px;padding:4px;border-radius:12px;background:color-mix(in srgb,var(--line) 60%,transparent)}
+    .mode-btn{border:0;border-radius:9px;padding:9px 6px;background:transparent;color:var(--muted);font-size:13px;font-weight:900;cursor:pointer}
+    .mode-btn.active{background:var(--ink);color:var(--paper);box-shadow:0 3px 0 color-mix(in srgb,var(--ink) 60%,transparent)}
+    .online-panel{margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--panel) 88%,var(--cyan))}
+    .online-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .online-actions button,.join-row button,.copy-code{border:0;border-radius:9px;padding:9px 8px;background:var(--blue);color:#fff;font-size:12px;font-weight:900;cursor:pointer}
+    .join-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:8px}
+    .join-row input{min-width:0;border:2px solid var(--line);border-radius:9px;padding:8px 10px;background:var(--panel);color:var(--ink);font:700 16px/1 "Microsoft YaHei","PingFang SC",sans-serif;letter-spacing:.18em;text-align:center;text-transform:uppercase}
+    .invite-box{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px;padding:9px 10px;border:2px dashed var(--blue);border-radius:10px;background:var(--panel)}
+    .invite-code{font:900 22px/1 "Microsoft YaHei","PingFang SC",sans-serif;letter-spacing:.16em;color:var(--blue)}
+    .copy-code{padding:7px 9px;background:var(--ink)}
+    .net-status{margin:9px 0 0!important;color:var(--muted)!important;font-size:11px!important;line-height:1.45}
+    .start-btn:disabled{cursor:not-allowed;filter:grayscale(.35);opacity:.58;box-shadow:0 3px 0 #7f2931;transform:none}
 
     /* Battle */
     #battleScreen{min-height:100dvh;background:#050914;padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom));display:flex;flex-direction:column;justify-content:center;overflow:hidden;touch-action:none}
@@ -79,7 +91,7 @@
     .hp-fill{height:100%;width:100%;background:linear-gradient(90deg,#54da5d,#b9ed57);transform-origin:left;transition:width .16s}
     .cpu .hp-fill{transform-origin:right;background:linear-gradient(90deg,#b9ed57,#54da5d)}
     .energy-track{height:7px;margin-top:5px;background:#09111c;border:1px solid rgba(255,255,255,.55);overflow:hidden}.energy-fill{height:100%;width:0;background:linear-gradient(90deg,#22b9ff,#b6f9ff);transition:width .18s}.cpu .energy-fill{margin-left:auto}
-    .timer{font-family:"ZCOOL KuaiLe",sans-serif;color:#fff;font-size:38px;line-height:1;text-align:center;text-shadow:0 3px 0 #000;background:#e33142;border:3px solid #fff;padding:4px;border-radius:8px;box-shadow:0 4px 0 #0c1525}
+    .timer{font-family:"STKaiti","KaiTi","Microsoft YaHei",sans-serif;color:#fff;font-size:38px;line-height:1;text-align:center;text-shadow:0 3px 0 #000;background:#e33142;border:3px solid #fff;padding:4px;border-radius:8px;box-shadow:0 4px 0 #0c1525}
     .pause-btn{position:absolute;z-index:45;right:10px;top:88px;width:38px;height:34px;border:1px solid rgba(255,255,255,.5);border-radius:8px;background:rgba(8,15,27,.72);color:#fff;font-weight:900;cursor:pointer}
     .fighter{--stepY:8px;--stepRot:3deg;--stretch:1.04;position:absolute;z-index:10;width:clamp(104px,20vw,220px);height:clamp(142px,27vw,294px);bottom:20%;left:20%;transform:translateX(-50%);pointer-events:none}
     .sprite-shell{position:absolute;inset:0;transform-origin:50% 86%;overflow:visible}
@@ -120,9 +132,9 @@
     @keyframes floatDmg{to{transform:translateY(-65px) rotate(-8deg);opacity:0}}
     .particle{position:absolute;z-index:27;width:10px;height:10px;border-radius:50%;background:var(--yellow);pointer-events:none;animation:particleFly .55s ease-out forwards}
     @keyframes particleFly{to{transform:translate(var(--dx),var(--dy)) rotate(160deg) scale(.2);opacity:0}}
-    .callout{position:absolute;z-index:50;inset:0;display:grid;place-items:center;pointer-events:none;font-family:"ZCOOL KuaiLe",sans-serif;color:#fff;font-size:clamp(52px,12vw,110px);text-shadow:0 7px 0 #121b2b,0 0 20px rgba(0,0,0,.5);transform:rotate(-4deg)}
+    .callout{position:absolute;z-index:50;inset:0;display:grid;place-items:center;pointer-events:none;font-family:"STKaiti","KaiTi","Microsoft YaHei",sans-serif;color:#fff;font-size:clamp(52px,12vw,110px);text-shadow:0 7px 0 #121b2b,0 0 20px rgba(0,0,0,.5);transform:rotate(-4deg)}
     .callout.pop{animation:callout .7s ease both}@keyframes callout{0%{opacity:0;transform:scale(2) rotate(-8deg)}35%{opacity:1;transform:scale(.93) rotate(-4deg)}100%{opacity:0;transform:scale(1.1) rotate(-2deg)}}
-    .special-banner{position:absolute;z-index:40;left:0;right:0;top:46%;padding:8px;text-align:center;background:rgba(7,17,31,.84);border-block:3px solid var(--yellow);color:var(--yellow);font:clamp(22px,5vw,45px)/1 "ZCOOL KuaiLe",sans-serif;letter-spacing:.08em;animation:banner .65s ease both;pointer-events:none}@keyframes banner{0%{transform:scaleX(0)}25%{transform:scaleX(1)}75%{opacity:1}100%{opacity:0}}
+    .special-banner{position:absolute;z-index:40;left:0;right:0;top:46%;padding:8px;text-align:center;background:rgba(7,17,31,.84);border-block:3px solid var(--yellow);color:var(--yellow);font:clamp(22px,5vw,45px)/1 "STKaiti","KaiTi","Microsoft YaHei",sans-serif;letter-spacing:.08em;animation:banner .65s ease both;pointer-events:none}@keyframes banner{0%{transform:scaleX(0)}25%{transform:scaleX(1)}75%{opacity:1}100%{opacity:0}}
 
     .controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;align-items:center}
     .move-controls,.attack-controls{display:flex;gap:10px;align-items:center}.attack-controls{justify-content:flex-end}
@@ -134,7 +146,7 @@
 
     .pause-overlay,.end-overlay{position:absolute;z-index:80;inset:0;display:grid;place-items:center;background:rgba(4,8,16,.74);backdrop-filter:blur(5px)}
     .modal{width:min(420px,calc(100% - 32px));padding:26px;border:2px solid #fff;border-radius:20px;background:#101a2b;color:#fff;text-align:center;box-shadow:10px 10px 0 rgba(0,0,0,.55)}
-    .modal h2{font-family:"ZCOOL KuaiLe",sans-serif;font-size:42px;margin:0 0 8px}.modal p{color:#b8c4d9;margin:0 0 20px}
+    .modal h2{font-family:"STKaiti","KaiTi","Microsoft YaHei",sans-serif;font-size:42px;margin:0 0 8px}.modal p{color:#b8c4d9;margin:0 0 20px}
     .modal-actions{display:flex;gap:10px}.modal-actions button{flex:1;border:0;border-radius:10px;padding:13px 10px;font-weight:900;cursor:pointer;background:#e43a49;color:#fff}.modal-actions .secondary{background:#344157}
 
     @media(max-width:760px){
@@ -190,6 +202,16 @@
         <div class="pick-body">
           <h2 id="pickName">经典奶蛙</h2>
           <p id="pickDesc">攻守均衡，笑声洪亮</p>
+          <div class="mode-switch" role="group" aria-label="对战模式">
+            <button class="mode-btn active" id="soloMode" type="button">单人挑战</button>
+            <button class="mode-btn" id="onlineMode" type="button">邀请码联机</button>
+          </div>
+          <div class="online-panel hidden" id="onlinePanel">
+            <div class="online-actions"><button id="createRoom" type="button">创建房间</button><button id="resetRoom" type="button">断开重来</button></div>
+            <div class="join-row"><input id="inviteInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="输入 6 位邀请码" aria-label="邀请码"><button id="joinRoom" type="button">加入</button></div>
+            <div class="invite-box hidden" id="inviteBox"><span class="invite-code" id="inviteCode"></span><button class="copy-code" id="copyCode" type="button">复制</button></div>
+            <p class="net-status" id="netStatus">创建房间后，把 6 位数字邀请码发给朋友；双方保持页面打开即可对战。</p>
+          </div>
           <div class="stat"><span>力量</span><div class="stat-line"><i id="powerStat"></i></div></div>
           <div class="stat"><span>速度</span><div class="stat-line"><i id="speedStat"></i></div></div>
           <div class="stat"><span>体力</span><div class="stat-line"><i id="hpStat"></i></div></div>
@@ -246,6 +268,7 @@
   <audio id="ice" src="assets/ice.mp3" preload="auto"></audio>
   <audio id="andy" src="assets/andy.mp3" preload="auto"></audio>
 
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.4/dist/mqtt.min.js"></script>
 <script>
 (function(){
   'use strict';
@@ -270,17 +293,89 @@
   const roster=$('#roster'),selectScreen=$('#selectScreen'),battleScreen=$('#battleScreen'),arena=$('#arena');
   const bgm=$('#bgm'); bgm.volume=.22;
   let selected=0,player=null,cpu=null,running=false,paused=false,last=0,raf=0,timeLeft=60,timerId=0,aiId=0,sim=0,events=[],matchToken=0,pauseAt=0;
-  const held={left:false,right:false,down:false,guard:false};
+  const held={left:false,right:false,down:false,guard:false},remoteHeld={left:false,right:false,down:false,guard:false};
+  let gameMode='solo',mqttClient=null,roomTopic='',netRole=null,remoteSelected=0,netReady=false,lastNetSync=0,guestRaf=0,peerSeen=false;
+  const mqttBroker='wss://broker.emqx.io:8084/mqtt';
+  const netId='nf-'+Math.random().toString(36).slice(2,10)+'-'+Date.now().toString(36);
 
   function renderRoster(){
     roster.innerHTML='';
     fighters.forEach((f,i)=>{const b=document.createElement('button');b.className='char-card'+(i===selected?' selected':'');b.dataset.index=i;b.innerHTML='<img src="assets/char-'+f.key+'.webp" alt="'+f.name+'角色立绘"><span class="type">'+f.type+'</span><span class="name">'+f.name+'</span>';b.addEventListener('click',()=>pick(i));roster.appendChild(b)});
     updatePick();
   }
-  function pick(i){selected=i;$$('.char-card').forEach((b,n)=>b.classList.toggle('selected',n===i));updatePick();playSound('sfx'+((i%4)+1),.2)}
+  function pick(i){selected=i;$$('.char-card').forEach((b,n)=>b.classList.toggle('selected',n===i));updatePick();playSound('sfx'+((i%4)+1),.2);netSend({type:'select',index:i})}
   function updatePick(){const f=fighters[selected];$('#pickImage').src='assets/char-'+f.key+'.webp';$('#pickName').textContent=f.name;$('#pickDesc').textContent=f.desc;$('#powerStat').style.width=Math.round(f.power/17*100)+'%';$('#speedStat').style.width=Math.round(f.speed/16*100)+'%';$('#hpStat').style.width=Math.round(f.hp/114*100)+'%';$('#defStat').style.width=Math.round(f.defense/1.12*100)+'%'}
   function playSound(id,vol){const a=document.getElementById(id);if(!a)return;a.volume=vol||.35;a.currentTime=0;a.play().catch(()=>{})}
   function safeDelay(fn,ms,token){setTimeout(()=>{if(token===matchToken)fn()},ms)}
+  function netSend(data){
+    if(!mqttClient||!mqttClient.connected||!roomTopic)return;
+    try{mqttClient.publish(roomTopic,JSON.stringify(Object.assign({sender:netId,role:netRole,sentAt:Date.now()},data)),{qos:0,retain:false})}catch(_){}
+  }
+  function setNetStatus(text,isError){const e=$('#netStatus');e.textContent=text;e.style.color=isError?'var(--red)':''}
+  function refreshStartButton(){const b=$('#startBtn');if(gameMode==='solo'){b.disabled=false;b.textContent='带它上场';return}if(!netReady){b.disabled=true;b.textContent='等待联机';return}if(netRole==='host'){b.disabled=false;b.textContent='开始联机对战'}else{b.disabled=true;b.textContent='等待房主开战'}}
+  function closeMqtt(){
+    if(mqttClient){try{if(mqttClient.connected&&roomTopic)mqttClient.publish(roomTopic,JSON.stringify({sender:netId,role:netRole,type:'leave'}),{qos:0,retain:false});mqttClient.end(true)}catch(_){}}
+    mqttClient=null;roomTopic='';peerSeen=false;
+  }
+  function resetNetwork(keepMode){
+    netReady=false;netRole=null;remoteSelected=0;closeMqtt();
+    $('#inviteBox').classList.add('hidden');$('#inviteCode').textContent='';$('#inviteInput').value='';setNetStatus('创建房间后，把 6 位数字邀请码发给朋友；双方保持页面打开即可对战。');if(!keepMode)setMode('solo');else refreshStartButton();
+  }
+  function setMode(mode){gameMode=mode;$('#soloMode').classList.toggle('active',mode==='solo');$('#onlineMode').classList.toggle('active',mode==='online');$('#onlinePanel').classList.toggle('hidden',mode!=='online');if(mode==='solo'&&mqttClient)resetNetwork(true);refreshStartButton()}
+  function makeCode(){return String(Math.floor(100000+Math.random()*900000))}
+  function connectMqtt(code,role){
+    if(!window.mqtt||typeof window.mqtt.connect!=='function'){setNetStatus('MQTT 联机组件加载失败，请检查网络后刷新页面。',true);return}
+    netRole=role;roomTopic='naiwa-fighter/room/'+code;peerSeen=false;
+    const willPayload=JSON.stringify({sender:netId,role:role,type:'leave'});
+    mqttClient=window.mqtt.connect(mqttBroker,{clientId:netId+'-'+Math.random().toString(16).slice(2,6),clean:true,keepalive:20,reconnectPeriod:2500,connectTimeout:10000,will:{topic:roomTopic,payload:willPayload,qos:0,retain:false}});
+    mqttClient.on('connect',()=>{
+      mqttClient.subscribe(roomTopic,{qos:0},err=>{
+        if(err){setNetStatus('订阅房间失败，请断开后重试。',true);return}
+        setNetStatus(role==='host'?'房间已创建，把邀请码发给朋友。':'已进入房间，正在等待房主确认…');
+        netSend({type:'hello',index:selected});
+        if(role==='host')netSend({type:'host-ready',index:selected});
+      });
+    });
+    mqttClient.on('message',(topic,payload)=>{
+      if(topic!==roomTopic)return;
+      let data;try{data=JSON.parse(payload.toString())}catch(_){return}
+      if(!data||data.sender===netId)return;handleNetData(data);
+    });
+    mqttClient.on('reconnect',()=>setNetStatus('网络波动，正在重新连接房间…'));
+    mqttClient.on('offline',()=>{netReady=false;setNetStatus('MQTT 连接已断开，正在重连…',true);refreshStartButton()});
+    mqttClient.on('error',()=>{netReady=false;setNetStatus('MQTT 联机失败，请检查网络或邀请码后重试。',true);refreshStartButton()});
+  }
+  function createOnlineRoom(){
+    resetNetwork(true);const code=makeCode();$('#inviteCode').textContent=code;$('#inviteBox').classList.remove('hidden');setNetStatus('正在通过 MQTT 创建房间…');connectMqtt(code,'host');
+  }
+  function joinOnlineRoom(){
+    const code=$('#inviteInput').value.trim().replace(/\D/g,'');if(code.length!==6){setNetStatus('请输入完整的 6 位数字邀请码。',true);return}
+    resetNetwork(true);$('#inviteInput').value=code;setNetStatus('正在通过 MQTT 加入房间…');connectMqtt(code,'guest');
+  }
+  function handleNetData(data){
+    if(!data||typeof data!=='object')return;
+    if(data.type==='hello'){
+      if((netRole==='host'&&data.role!=='guest')||(netRole==='guest'&&data.role!=='host'))return;
+      remoteSelected=Math.max(0,Math.min(fighters.length-1,Number(data.index)||0));peerSeen=true;
+      if(netRole==='host'){netReady=true;setNetStatus('好友已加入！双方选好角色后即可开始。');netSend({type:'host-ready',index:selected})}
+      else if(data.role==='host'){netReady=true;setNetStatus('连接成功！选好角色，等待房主开战。')}
+      refreshStartButton();return;
+    }
+    if(data.type==='host-ready'&&netRole==='guest'){
+      remoteSelected=Math.max(0,Math.min(fighters.length-1,Number(data.index)||0));peerSeen=true;netReady=true;setNetStatus('连接成功！选好角色，等待房主开战。');refreshStartButton();return;
+    }
+    if(data.type==='select'){remoteSelected=Math.max(0,Math.min(fighters.length-1,Number(data.index)||0));return}
+    if(data.type==='leave'){netReady=false;peerSeen=false;setNetStatus('对手已离开房间。可断开重来后重新联机。',true);refreshStartButton();if(running)finish(netRole==='host'?player:cpu,'对手离线');return}
+    if(data.type==='start'&&netRole==='guest'){startFightSetup(data.hostIndex,data.guestIndex,true);return}
+    if(data.type==='hold'&&netRole==='host'&&Object.prototype.hasOwnProperty.call(remoteHeld,data.key))remoteHeld[data.key]=!!data.down;
+    if(data.type==='action'&&netRole==='host'&&running){if(data.action==='jump')jump(cpu);else attack(cpu,data.action,!!data.hitClaim)}
+    if(data.type==='snapshot'&&netRole==='guest')applySnapshot(data);
+    if(data.type==='pause-request'&&netRole==='host')setPaused(!paused);
+    if(data.type==='pause'&&netRole==='guest')setGuestPaused(!!data.value);
+    if(data.type==='finish'&&netRole==='guest'&&running)finish(data.winner==='p'?player:data.winner==='c'?cpu:null,data.reason||'KO');
+    if(data.type==='rematch'&&netRole==='guest')startFightSetup(data.hostIndex,data.guestIndex,true);
+    if(data.type==='quit'&&netRole==='guest')goSelect(false);
+  }
 
   function makeState(side,index){
     const data=fighters[index],el=$(side==='p'?'#playerFighter':'#cpuFighter'),sprite=el.querySelector('.sprite');
@@ -288,25 +383,33 @@
     return {side,data,el,sprite,shell:el.querySelector('.sprite-shell'),hp:data.hp,maxHp:data.hp,energy:0,x:side==='p'?22:78,y:0,vy:0,onGround:true,busy:0,guard:false,dead:false,state:'idle',anim:{row:'idle',start:0,dur:920,loop:true},combo:0};
   }
   function startFight(){
-    matchToken++;const token=matchToken;events=[];sim=0;
-    const choices=fighters.map((_,i)=>i).filter(i=>i!==selected),enemy=choices[Math.floor(Math.random()*choices.length)];
-    player=makeState('p',selected);cpu=makeState('c',enemy);resetFighter(player);resetFighter(cpu);
-    $('#pName').textContent=player.data.name;$('#cName').textContent=cpu.data.name;selectScreen.classList.add('hidden');battleScreen.classList.remove('hidden');$('#endOverlay').classList.add('hidden');$('#pauseOverlay').classList.add('hidden');
-    timeLeft=60;$('#timer').textContent='60';running=false;paused=false;held.left=held.right=held.down=held.guard=false;updateHud();bgm.currentTime=0;bgm.play().catch(()=>{});
-    showCallout('3');safeDelay(()=>showCallout('2'),560,token);safeDelay(()=>showCallout('1'),1120,token);safeDelay(()=>{showCallout('开打！');running=true;last=performance.now();raf=requestAnimationFrame(loop)},1680,token);
-    clearInterval(timerId);timerId=setInterval(()=>{if(token!==matchToken)return clearInterval(timerId);if(running&&!paused){timeLeft--;$('#timer').textContent=timeLeft;if(timeLeft<=0){if(player.hp===cpu.hp)finish(null,'平局');else finish(player.hp>cpu.hp?player:cpu,'时间到')}}},1000);
-    clearInterval(aiId);aiId=setInterval(()=>{if(token===matchToken)cpuThink()},245);
+    if(gameMode==='online'){if(netRole!=='host'||!netReady)return;netSend({type:'start',hostIndex:selected,guestIndex:remoteSelected});startFightSetup(selected,remoteSelected,false);return}
+    const choices=fighters.map((_,i)=>i).filter(i=>i!==selected),enemy=choices[Math.floor(Math.random()*choices.length)];startFightSetup(selected,enemy,false);
+  }
+  function startFightSetup(hostIndex,guestIndex,isGuest){
+    matchToken++;const token=matchToken;events=[];sim=0;lastNetSync=0;
+    player=makeState('p',hostIndex);cpu=makeState('c',guestIndex);resetFighter(player);resetFighter(cpu);
+    $('#pName').textContent=player.data.name+(gameMode==='online'?' · 房主':'');$('#cName').textContent=cpu.data.name+(gameMode==='online'?' · 好友':'');selectScreen.classList.add('hidden');battleScreen.classList.remove('hidden');$('#endOverlay').classList.add('hidden');$('#pauseOverlay').classList.add('hidden');$('#rematchBtn').disabled=gameMode==='online'&&isGuest;$('#rematchBtn').textContent=gameMode==='online'&&isGuest?'等待房主再战':'再来一局';$('#resumeBtn').textContent=gameMode==='online'&&isGuest?'请求继续':'继续对战';
+    timeLeft=60;$('#timer').textContent='60';running=false;paused=false;held.left=held.right=held.down=held.guard=false;remoteHeld.left=remoteHeld.right=remoteHeld.down=remoteHeld.guard=false;updateHud();bgm.currentTime=0;bgm.play().catch(()=>{});
+    showCallout('3');safeDelay(()=>showCallout('2'),560,token);safeDelay(()=>showCallout('1'),1120,token);safeDelay(()=>{showCallout('开打！');running=true;last=performance.now();if(!isGuest)raf=requestAnimationFrame(loop);else guestRaf=requestAnimationFrame(guestRenderLoop)},1680,token);
+    clearInterval(timerId);clearInterval(aiId);
+    if(!isGuest){timerId=setInterval(()=>{if(token!==matchToken)return clearInterval(timerId);if(running&&!paused){timeLeft--;$('#timer').textContent=timeLeft;if(timeLeft<=0){if(player.hp===cpu.hp)finish(null,'平局');else finish(player.hp>cpu.hp?player:cpu,'时间到')}}},1000);if(gameMode==='solo')aiId=setInterval(()=>{if(token===matchToken)cpuThink()},245)}
   }
   function resetFighter(f){f.el.className='fighter';f.el.style.left=f.x+'%';f.el.style.bottom='20%';f.shell.style.transform=f.side==='c'?'scaleX(-1)':'scaleX(1)';setAnim(f,'idle',920,true,true);setPoseFrame(f.sprite,0)}
   function showCallout(text){const c=$('#callout');c.textContent=text;c.classList.remove('pop');void c.offsetWidth;c.classList.add('pop')}
   function queue(delay,fn){events.push({at:sim+delay,fn})}
   function processEvents(){const due=events.filter(e=>e.at<=sim);events=events.filter(e=>e.at>sim);due.forEach(e=>e.fn())}
-  function loop(t){if(!running)return;const dt=Math.min(.034,(t-last)/1000||0);last=t;if(!paused){sim+=dt*1000;processEvents();updatePlayer(dt);updateCPU(dt);physics(player,dt);physics(cpu,dt);separateFighters();faceEachOther();renderState(player);renderState(cpu)}raf=requestAnimationFrame(loop)}
+  function loop(t){if(!running)return;const dt=Math.min(.034,(t-last)/1000||0);last=t;if(!paused){sim+=dt*1000;processEvents();updatePlayer(dt);updateCPU(dt);physics(player,dt);physics(cpu,dt);separateFighters();faceEachOther();renderState(player);renderState(cpu);if(gameMode==='online'&&netRole==='host'&&t-lastNetSync>66){lastNetSync=t;sendSnapshot()}}raf=requestAnimationFrame(loop)}
+  function packFighter(f){return{x:f.x,y:f.y,hp:f.hp,energy:f.energy,guard:f.guard,dead:f.dead,onGround:f.onGround,state:f.state,anim:f.anim}}
+  function sendSnapshot(){netSend({type:'snapshot',sim:sim,time:timeLeft,p:packFighter(player),c:packFighter(cpu)})}
+  function applyFighterSnapshot(f,s){if(!f||!s)return;f.x=s.x;f.y=s.y;f.hp=s.hp;f.energy=s.energy;f.guard=s.guard;f.dead=s.dead;f.onGround=s.onGround;f.state=s.state;f.anim=s.anim||f.anim;setState(f,s.state);renderState(f)}
+  function applySnapshot(data){if(!player||!cpu)return;sim=Number(data.sim)||sim;timeLeft=Number(data.time);$('#timer').textContent=timeLeft;applyFighterSnapshot(player,data.p);applyFighterSnapshot(cpu,data.c);faceEachOther();updateHud()}
+  function guestRenderLoop(t){if(!running||netRole!=='guest')return;renderFrames(player);renderFrames(cpu);guestRaf=requestAnimationFrame(guestRenderLoop)}
   function setAnim(f,row,dur,loop,force){if(!force&&f.state===row&&f.anim&&f.anim.loop===loop)return;f.state=row;f.anim={row,start:sim,dur,loop:!!loop};setState(f,row)}
   function setPoseFrame(sprite,pose){const col=pose%4,row=Math.floor(pose/4);sprite.style.backgroundPosition=(col*100/3)+'% '+(row*100)+'%'}
   function renderFrames(f){const seq=poseFrames[f.anim.row]||poseFrames.idle,elapsed=Math.max(0,sim-f.anim.start),step=f.anim.loop?Math.floor(elapsed/(f.anim.dur/seq.length))%seq.length:Math.min(seq.length-1,Math.floor(elapsed/(f.anim.dur/seq.length)));setPoseFrame(f.sprite,seq[step])}
   function updatePlayer(dt){if(player.dead)return;player.guard=held.guard&&player.onGround&&sim>=player.busy;if(player.guard){setAnim(player,'guard',500,true);return}if(sim<player.busy)return;let dir=(held.right?1:0)-(held.left?1:0);if(held.down&&player.onGround){setAnim(player,'crouch',640,true)}else if(dir){player.x+=dir*player.data.speed*dt*2.45;setAnim(player,'walk',480,true)}else if(player.onGround)setAnim(player,'idle',920,true)}
-  function updateCPU(dt){if(cpu.dead)return;if(cpu.guard){setAnim(cpu,'guard',500,true);return}if(sim<cpu.busy)return;const d=player.x-cpu.x,preferred=cpu.data.special==='cup'?31:cpu.data.special==='splash'?25:15;if(Math.abs(d)>preferred){cpu.x+=Math.sign(d)*cpu.data.speed*dt*1.5;setAnim(cpu,'walk',520,true)}else setAnim(cpu,'idle',920,true)}
+  function updateCPU(dt){if(cpu.dead)return;if(gameMode==='online'){cpu.guard=remoteHeld.guard&&cpu.onGround&&sim>=cpu.busy;if(cpu.guard){setAnim(cpu,'guard',500,true);return}if(sim<cpu.busy)return;let dir=(remoteHeld.right?1:0)-(remoteHeld.left?1:0);if(remoteHeld.down&&cpu.onGround)setAnim(cpu,'crouch',640,true);else if(dir){cpu.x+=dir*cpu.data.speed*dt*2.45;setAnim(cpu,'walk',480,true)}else if(cpu.onGround)setAnim(cpu,'idle',920,true);return}if(cpu.guard){setAnim(cpu,'guard',500,true);return}if(sim<cpu.busy)return;const d=player.x-cpu.x,preferred=cpu.data.special==='cup'?31:cpu.data.special==='splash'?25:15;if(Math.abs(d)>preferred){cpu.x+=Math.sign(d)*cpu.data.speed*dt*1.5;setAnim(cpu,'walk',520,true)}else setAnim(cpu,'idle',920,true)}
   function physics(f,dt){if(!f.onGround){f.vy-=112*dt;f.y+=f.vy*dt;if(f.y<=0){f.y=0;f.vy=0;f.onGround=true;if(sim>=f.busy)setAnim(f,'idle',920,true)}}f.x=Math.max(7,Math.min(93,f.x))}
   function separateFighters(){if(!player||!cpu)return;const gap=cpu.x-player.x;if(Math.abs(gap)<7){const push=(7-Math.abs(gap))/2*(gap>=0?1:-1);player.x-=push;cpu.x+=push}}
   function renderState(f){f.el.style.left=f.x+'%';f.el.style.bottom='calc(20% + '+f.y+'px)';f.el.classList.toggle('jumping',!f.onGround);renderFrames(f)}
@@ -319,22 +422,22 @@
     lk:{mul:.68,range:17,dur:330,hit:150,energy:9},hk:{mul:1.08,range:22,dur:570,hit:310,energy:15},
     upper:{mul:.88,range:16,dur:510,hit:250,energy:13},jumpatk:{mul:.80,range:19,dur:390,hit:155,energy:11},crouch:{mul:.72,range:18,dur:370,hit:170,energy:10}
   };
-  function attack(f,kind){
+  function attack(f,kind,hitClaim){
     if(!running||paused||!f||f.dead||sim<f.busy)return;const target=f===player?cpu:player;
-    if(kind==='special')return specialAttack(f,target);
-    if(!f.onGround)kind='jumpatk';else if(held.down&&f===player)kind='crouch';
+    if(kind==='special')return specialAttack(f,target,hitClaim);
+    if(!f.onGround)kind='jumpatk';else if((f===player?held.down:remoteHeld.down))kind='crouch';
     const cfg=moveCfg[kind];if(!cfg)return;
     let dur=cfg.dur*(12/f.data.speed*.18+.82);if(f.data.key==='lolita'&&(kind==='lp'||kind==='lk'))dur*=.82;if(f.data.key==='worker'&&(kind==='hp'||kind==='hk'))dur*=1.12;
     f.busy=sim+dur;setAnim(f,kind,dur,false,true);playSound(kind==='hp'||kind==='hk'?'sfx3':'sfx1',.18);
-    queue(cfg.hit,()=>{if(!running||f.dead)return;if(Math.abs(f.x-target.x)<=cfg.range){let dmg=Math.round(f.data.power*cfg.mul*(.92+Math.random()*.14));dealDamage(target,dmg,f,kind);if(kind==='upper'&&target.hp>0){target.onGround=false;target.vy=42}}});
+    queue(cfg.hit,()=>{if(!running||f.dead)return;const landed=typeof hitClaim==='boolean'?hitClaim:Math.abs(f.x-target.x)<=cfg.range;if(landed){let dmg=Math.round(f.data.power*cfg.mul*(.92+Math.random()*.14));dealDamage(target,dmg,f,kind);if(kind==='upper'&&target.hp>0){target.onGround=false;target.vy=42}}});
     queue(dur+8,()=>{if(!f.dead&&sim>=f.busy&&f.onGround)setAnim(f,'idle',920,true)});
   }
-  function specialAttack(f,target){
+  function specialAttack(f,target,hitClaim){
     if(f.energy<45){flashEnergy(f);return}f.energy-=45;updateHud();const spec=f.data.special;let dur={wave:760,leap:820,rage:900,cup:760,ribbon:920,blink:620,case:980,splash:880}[spec];f.busy=sim+dur;setAnim(f,'special',dur,false,true);specialBanner(f);spawnSpecialFx(f,spec);playSound(spec==='cup'||spec==='splash'?'ice':'sfx4',.44);
     if(spec==='blink')queue(245,()=>{f.x=Math.max(8,Math.min(92,target.x+(f.x<target.x?-8:8)));faceEachOther()});
     if(spec==='leap'){f.onGround=false;f.vy=74;}
     const hitAt={wave:380,leap:455,rage:525,cup:470,ribbon:350,blink:340,case:590,splash:470}[spec];
-    queue(hitAt,()=>{if(!running||f.dead)return;const ranged=['wave','cup','splash'].includes(spec),range=ranged?58:spec==='ribbon'?25:23;if(Math.abs(f.x-target.x)<=range){let base={wave:1.32,leap:1.35,rage:1.42,cup:1.30,ribbon:.55,blink:1.38,case:1.48,splash:1.31}[spec];if(spec==='ribbon'){dealDamage(target,Math.round(f.data.power*base),f,'special');queue(130,()=>target.hp>0&&dealDamage(target,Math.round(f.data.power*.42),f,'special'));queue(260,()=>target.hp>0&&dealDamage(target,Math.round(f.data.power*.38),f,'special'))}else dealDamage(target,Math.round(f.data.power*base),f,'special')}});
+    queue(hitAt,()=>{if(!running||f.dead)return;const ranged=['wave','cup','splash'].includes(spec),range=ranged?58:spec==='ribbon'?25:23;const landed=typeof hitClaim==='boolean'?hitClaim:Math.abs(f.x-target.x)<=range;if(landed){let base={wave:1.32,leap:1.35,rage:1.42,cup:1.30,ribbon:.55,blink:1.38,case:1.48,splash:1.31}[spec];if(spec==='ribbon'){dealDamage(target,Math.round(f.data.power*base),f,'special');queue(130,()=>target.hp>0&&dealDamage(target,Math.round(f.data.power*.42),f,'special'));queue(260,()=>target.hp>0&&dealDamage(target,Math.round(f.data.power*.38),f,'special'))}else dealDamage(target,Math.round(f.data.power*base),f,'special')}});
     queue(dur+20,()=>{if(!f.dead&&sim>=f.busy&&f.onGround)setAnim(f,'idle',920,true)});
   }
   function dealDamage(target,dmg,attacker,kind){
@@ -356,22 +459,37 @@
   }
   function playStandalone(f,row,dur){const started=performance.now(),seq=poseFrames[row]||poseFrames.idle;function tick(now){const frame=Math.min(seq.length-1,Math.floor((now-started)/(dur/seq.length)));setPoseFrame(f.sprite,seq[frame]);if(frame<seq.length-1)requestAnimationFrame(tick)}requestAnimationFrame(tick)}
   function finish(winner,reason){
-    if(!running)return;running=false;clearInterval(timerId);clearInterval(aiId);cancelAnimationFrame(raf);events=[];
+    if(!running)return;if(gameMode==='online'&&netRole==='host')netSend({type:'finish',winner:winner===player?'p':winner===cpu?'c':null,reason:reason});running=false;clearInterval(timerId);clearInterval(aiId);cancelAnimationFrame(raf);cancelAnimationFrame(guestRaf);events=[];
     if(!winner){setAnim(player,'idle',920,true,true);setAnim(cpu,'idle',920,true,true);showCallout('平局');$('#endTitle').textContent='势均力敌';$('#endText').textContent='两只奶蛙都不服，再打一局吧';safeDelay(()=>$('#endOverlay').classList.remove('hidden'),1200,matchToken);return}
-    const loser=winner===player?cpu:player;winner.dead=true;loser.dead=true;setAnim(loser,'ko',760,false,true);playStandalone(loser,'ko',760);safeDelay(()=>{setState(winner,'victory');playSound('sfx'+(1+Math.floor(Math.random()*4)),.62);showCallout(reason);$('#endTitle').textContent=winner===player?'你赢了！':'奶蛙惜败';$('#endText').textContent=reason+' · '+winner.data.name+'使出捧腹大笑嘲讽';safeDelay(()=>$('#endOverlay').classList.remove('hidden'),2300,matchToken)},760,matchToken)
+    const loser=winner===player?cpu:player,localWon=gameMode==='online'&&netRole==='guest'?winner===cpu:winner===player;winner.dead=true;loser.dead=true;setAnim(loser,'ko',760,false,true);playStandalone(loser,'ko',760);safeDelay(()=>{setState(winner,'victory');playSound('sfx'+(1+Math.floor(Math.random()*4)),.62);showCallout(reason);$('#endTitle').textContent=localWon?'你赢了！':'奶蛙惜败';$('#endText').textContent=reason+' · '+winner.data.name+'使出捧腹大笑嘲讽';safeDelay(()=>$('#endOverlay').classList.remove('hidden'),2300,matchToken)},760,matchToken)
   }
 
-  function handleAction(action){if(action==='jump')jump(player);else attack(player,action)}
+  function localHitClaim(action){
+    if(!player||!cpu||action==='jump')return false;
+    let kind=!cpu.onGround?'jumpatk':held.down?'crouch':action;
+    if(kind==='special'){
+      if(cpu.energy<45)return false;
+      const spec=cpu.data.special;if(spec==='blink')return true;
+      const range=['wave','cup','splash'].includes(spec)?58:spec==='ribbon'?25:23;
+      return Math.abs(cpu.x-player.x)<=range;
+    }
+    const cfg=moveCfg[kind];return !!cfg&&Math.abs(cpu.x-player.x)<=cfg.range;
+  }
+  function handleAction(action){if(gameMode==='online'&&netRole==='guest'){netSend({type:'action',action:action,hitClaim:localHitClaim(action)});return}if(action==='jump')jump(player);else attack(player,action)}
+  function setLocalHold(key,value){held[key]=value;if(gameMode==='online'&&netRole==='guest')netSend({type:'hold',key:key,down:value})}
   $$('#battleScreen [data-action]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();if(b.setPointerCapture)try{b.setPointerCapture(e.pointerId)}catch(_){}handleAction(b.dataset.action);b.classList.add('pressed');setTimeout(()=>b.classList.remove('pressed'),120)}));
-  $$('#battleScreen [data-hold]').forEach(b=>{const k=b.dataset.hold;const down=e=>{e.preventDefault();if(b.setPointerCapture)try{b.setPointerCapture(e.pointerId)}catch(_){}held[k]=true;b.classList.add('pressed')},up=e=>{e.preventDefault();held[k]=false;b.classList.remove('pressed')};b.addEventListener('pointerdown',down);['pointerup','pointercancel','lostpointercapture'].forEach(n=>b.addEventListener(n,up))});
-  document.addEventListener('keydown',e=>{if(e.repeat&&['KeyJ','KeyK','KeyU','KeyO','KeyW'].includes(e.code))return;if(e.code==='KeyA')held.left=true;if(e.code==='KeyD')held.right=true;if(e.code==='KeyS')held.down=true;if(e.code==='KeyI')held.guard=true;if(e.code==='KeyW')jump(player);if(e.code==='KeyJ')attack(player,'lp');if(e.code==='KeyK')attack(player,'hp');if(e.code==='KeyN')attack(player,'lk');if(e.code==='KeyM')attack(player,'hk');if(e.code==='KeyU')attack(player,'upper');if(e.code==='KeyL')attack(player,'special')});
-  document.addEventListener('keyup',e=>{if(e.code==='KeyA')held.left=false;if(e.code==='KeyD')held.right=false;if(e.code==='KeyS')held.down=false;if(e.code==='KeyI')held.guard=false});
-  $('#startBtn').addEventListener('click',startFight);$('#pauseBtn').addEventListener('click',()=>setPaused(true));$('#resumeBtn').addEventListener('click',()=>setPaused(false));
-  function setPaused(v){if(!running)return;paused=v;if(v){pauseAt=performance.now();$('#pauseOverlay').classList.remove('hidden')}else{last=performance.now();$('#pauseOverlay').classList.add('hidden')}}
-  function goSelect(){matchToken++;running=false;paused=false;events=[];clearInterval(timerId);clearInterval(aiId);cancelAnimationFrame(raf);bgm.pause();battleScreen.classList.add('hidden');selectScreen.classList.remove('hidden');renderRoster();window.scrollTo(0,0)}
+  $$('#battleScreen [data-hold]').forEach(b=>{const k=b.dataset.hold;const down=e=>{e.preventDefault();if(b.setPointerCapture)try{b.setPointerCapture(e.pointerId)}catch(_){}setLocalHold(k,true);b.classList.add('pressed')},up=e=>{e.preventDefault();setLocalHold(k,false);b.classList.remove('pressed')};b.addEventListener('pointerdown',down);['pointerup','pointercancel','lostpointercapture'].forEach(n=>b.addEventListener(n,up))});
+  document.addEventListener('keydown',e=>{if(e.repeat&&['KeyJ','KeyK','KeyU','KeyO','KeyW'].includes(e.code))return;if(e.code==='KeyA')setLocalHold('left',true);if(e.code==='KeyD')setLocalHold('right',true);if(e.code==='KeyS')setLocalHold('down',true);if(e.code==='KeyI')setLocalHold('guard',true);if(e.code==='KeyW')handleAction('jump');if(e.code==='KeyJ')handleAction('lp');if(e.code==='KeyK')handleAction('hp');if(e.code==='KeyN')handleAction('lk');if(e.code==='KeyM')handleAction('hk');if(e.code==='KeyU')handleAction('upper');if(e.code==='KeyL')handleAction('special')});
+  document.addEventListener('keyup',e=>{if(e.code==='KeyA')setLocalHold('left',false);if(e.code==='KeyD')setLocalHold('right',false);if(e.code==='KeyS')setLocalHold('down',false);if(e.code==='KeyI')setLocalHold('guard',false)});
+  $('#startBtn').addEventListener('click',startFight);$('#pauseBtn').addEventListener('click',()=>{if(gameMode==='online'&&netRole==='guest'){netSend({type:'pause-request'});return}setPaused(true)});$('#resumeBtn').addEventListener('click',()=>{if(gameMode==='online'&&netRole==='guest')netSend({type:'pause-request'});else setPaused(false)});
+  function setPaused(v){if(!running)return;paused=v;if(gameMode==='online'&&netRole==='host')netSend({type:'pause',value:v});if(v){pauseAt=performance.now();$('#pauseOverlay').classList.remove('hidden')}else{last=performance.now();$('#pauseOverlay').classList.add('hidden')}}
+  function setGuestPaused(v){paused=v;$('#pauseOverlay').classList.toggle('hidden',!v)}
+  function goSelect(notify){if(notify!==false&&gameMode==='online')netSend({type:'quit'});matchToken++;running=false;paused=false;events=[];clearInterval(timerId);clearInterval(aiId);cancelAnimationFrame(raf);cancelAnimationFrame(guestRaf);bgm.pause();battleScreen.classList.add('hidden');selectScreen.classList.remove('hidden');renderRoster();refreshStartButton();window.scrollTo(0,0)}
   $('#quitBtn').addEventListener('click',goSelect);$('#changeBtn').addEventListener('click',goSelect);$('#rematchBtn').addEventListener('click',startFight);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden&&running&&!paused)setPaused(true)});
-  renderRoster();
+  $('#soloMode').addEventListener('click',()=>setMode('solo'));$('#onlineMode').addEventListener('click',()=>setMode('online'));$('#createRoom').addEventListener('click',createOnlineRoom);$('#resetRoom').addEventListener('click',()=>resetNetwork(true));$('#joinRoom').addEventListener('click',joinOnlineRoom);$('#inviteInput').addEventListener('keydown',e=>{if(e.key==='Enter')joinOnlineRoom()});
+  $('#copyCode').addEventListener('click',()=>{const code=$('#inviteCode').textContent;if(!code)return;navigator.clipboard.writeText(code).then(()=>setNetStatus('邀请码已复制，发给朋友即可。')).catch(()=>setNetStatus('复制失败，请长按邀请码手动复制。',true))});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&running&&!paused&&netRole!=='guest')setPaused(true)});
+  renderRoster();refreshStartButton();
 })();
 </script>
 </body>
