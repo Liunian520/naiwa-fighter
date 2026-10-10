@@ -423,7 +423,7 @@
   function detectWebPSupport(){try{const canvas=document.createElement('canvas');canvas.width=canvas.height=1;return canvas.toDataURL('image/webp').indexOf('data:image/webp')===0}catch(_){return false}}
   const fighterImageExt=detectWebPSupport()?'webp':'png';
   const fighterAssetMap=Object.freeze({
-    classic:{char:'char-classic-r6-f6d7d02472',model:'model-classic-r6-4edcc37250'},bounce:{char:'char-bounce-r6-95d4ace744',model:'model-bounce-r6-baaa0814e4'},angry:{char:'char-angry-r6-4ce0d757d6',model:'model-angry-r6-c76a15c04c'},tea:{char:'char-tea-r6-63ea13031c',model:'model-tea-r6-6664aae92e'},lolita:{char:'char-lolita-r6-de0e5972e1',model:'model-lolita-r6-6db64c4444'},cat:{char:'char-cat-r6-a688591265',model:'model-cat-r6-dc8780f154'},worker:{char:'char-worker-r6-b7a9e2f57e',model:'model-worker-r6-540e378457'},beauty:{char:'char-beauty-r6-5f65c18777',model:'model-beauty-r6-cf2cf659f5'}
+    classic:{char:'char-classic-r7-f6d7d02472',model:'model-classic-r7-4edcc37250'},bounce:{char:'char-bounce-r7-95d4ace744',model:'model-bounce-r7-baaa0814e4'},angry:{char:'char-angry-r7-4ce0d757d6',model:'model-angry-r7-c76a15c04c'},tea:{char:'char-tea-r7-63ea13031c',model:'model-tea-r7-6664aae92e'},lolita:{char:'char-lolita-r7-de0e5972e1',model:'model-lolita-r7-6db64c4444'},cat:{char:'char-cat-r7-a688591265',model:'model-cat-r7-dc8780f154'},worker:{char:'char-worker-r7-b7a9e2f57e',model:'model-worker-r7-540e378457'},beauty:{char:'char-beauty-r7-5f65c18777',model:'model-beauty-r7-cf2cf659f5'}
   });
   function fighterAsset(kind,key,ext){const entry=fighterAssetMap[key]||fighterAssetMap.classic;return 'assets/'+entry[kind]+'.'+(ext||fighterImageExt)}
   function warmModel(key){
