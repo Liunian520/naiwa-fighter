@@ -125,12 +125,12 @@
     .timer{font-family:"STKaiti","KaiTi","Microsoft YaHei",sans-serif;color:#fff;font-size:38px;line-height:1;text-align:center;text-shadow:0 3px 0 #000;background:#e33142;border:3px solid #fff;padding:4px;border-radius:8px;box-shadow:0 4px 0 #0c1525}
     .pause-btn{position:absolute;z-index:45;right:10px;top:88px;width:38px;height:34px;border:1px solid rgba(255,255,255,.5);border-radius:8px;background:rgba(8,15,27,.72);color:#fff;font-weight:900;cursor:pointer}
     .fighter{--stepY:8px;--stepRot:3deg;--stretch:1.04;--fighter-x:20px;--fighter-y:0px;position:absolute;z-index:10;width:clamp(104px,20vw,220px);height:clamp(142px,27vw,294px);bottom:20%;left:0;transform:translate3d(calc(var(--fighter-x) - 50%),var(--fighter-y),0);will-change:transform;pointer-events:none}
-    .sprite-shell{position:absolute;inset:0;transform-origin:50% 86%;overflow:visible}
-    .sprite,.motion-echo{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;transform-origin:50% 86%;will-change:transform,filter,opacity}
+    .sprite-shell{position:absolute;inset:0;transform-origin:50% 86%;overflow:visible;will-change:translate,scale,rotate}
+    .sprite,.motion-echo{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;transform-origin:50% 86%;will-change:transform,filter,opacity}
     .sprite{z-index:3;filter:drop-shadow(0 18px 8px rgba(0,0,0,.3))}
-    .motion-echo{z-index:1;opacity:0;filter:sepia(1) saturate(5) hue-rotate(325deg) brightness(1.2);mix-blend-mode:screen}
-    .fighter.state-idle .sprite{animation:idleBreath 1.15s ease-in-out infinite alternate}
-    .fighter.state-move .sprite{animation:walkCycle .22s cubic-bezier(.35,0,.65,1) infinite}
+    .motion-echo{z-index:1;opacity:0;filter:sepia(1) saturate(5) hue-rotate(325deg) brightness(1.2);mix-blend-mode:screen;pointer-events:none}
+    .fighter.state-idle .sprite-shell{animation:idleBreath 1.15s ease-in-out infinite alternate}
+    .fighter.state-walk .sprite-shell,.fighter.state-move .sprite-shell{animation:walkCycle .22s cubic-bezier(.35,0,.65,1) infinite}
     .fighter.state-move:after{content:"";position:absolute;z-index:0;left:31%;bottom:0;width:36%;height:10%;border-radius:50%;background:radial-gradient(ellipse,rgba(245,235,195,.8),transparent 66%);animation:stepDust .44s steps(2,end) infinite}
     .fighter.state-jump .sprite{animation:jumpPose .55s ease-out}
     .fighter.state-guard .sprite{animation:guardPulse .26s ease-in-out infinite alternate;filter:drop-shadow(0 18px 8px rgba(0,0,0,.28)) drop-shadow(0 0 12px #64e6ff)}
@@ -138,12 +138,12 @@
     .fighter.state-ko .sprite{filter:grayscale(.45) brightness(.78) drop-shadow(0 14px 7px rgba(0,0,0,.3))}
     .fighter.state-light .motion-echo,.fighter.state-heavy .motion-echo,.fighter.state-special .motion-echo,.fighter.state-hit .motion-echo{opacity:.32;animation:echoTrail .34s ease-out forwards}
     .fighter.state-heavy .echo-b,.fighter.state-special .echo-b{animation-delay:.055s;opacity:.2}
-    .attack-arc{display:none}
-    .fighter.state-light .attack-arc{border-top-color:#fff6a8;animation:attackArc .31s ease-out}
-    .fighter.state-heavy .attack-arc{width:78%;height:46%;border-top-color:#ff814a;border-width:12px;animation:attackArc .5s ease-out}
-    .fighter.state-special .attack-arc{inset:18% 2% auto 2%;width:96%;height:70%;border:9px solid var(--yellow);animation:specialArc .72s ease-out}
-    @keyframes idleBreath{from{transform:translateY(1px) rotate(-.7deg) scale(.995)}to{transform:translateY(-4px) rotate(.7deg) scale(1.015)}}
-    @keyframes walkCycle{0%{transform:translateY(1px) rotate(calc(var(--stepRot)*-.8)) scale(.99)}25%{transform:translateY(calc(var(--stepY)*-1)) rotate(0) scale(1.025)}50%{transform:translateY(0) rotate(calc(var(--stepRot)*.8)) scale(.99)}75%{transform:translateY(calc(var(--stepY)*-1)) rotate(0) scale(1.025)}100%{transform:translateY(1px) rotate(calc(var(--stepRot)*-.8)) scale(.99)}}
+    .attack-arc{display:block;position:absolute;z-index:7;left:48%;top:24%;width:65%;height:42%;border:9px solid transparent;border-top-color:#fff6a8;border-radius:50%;opacity:0;transform-origin:5% 70%;pointer-events:none;filter:drop-shadow(0 0 7px rgba(255,238,120,.9));will-change:transform,opacity}
+    .fighter.state-light .attack-arc{animation:attackArc .31s ease-out}
+    .fighter.state-heavy .attack-arc{width:78%;height:46%;border-top-color:#ff814a;border-width:12px;filter:drop-shadow(0 0 9px rgba(255,85,45,.9));animation:attackArc .5s ease-out}
+    .fighter.state-special .attack-arc{inset:18% 2% auto 2%;width:96%;height:70%;border:9px solid var(--yellow);filter:drop-shadow(0 0 13px rgba(255,210,41,.95));animation:specialArc .72s ease-out}
+    @keyframes idleBreath{from{translate:0 1px;rotate:-.7deg;scale:.995}to{translate:0 -4px;rotate:.7deg;scale:1.015}}
+    @keyframes walkCycle{0%{translate:0 1px;rotate:calc(var(--stepRot)*-.8);scale:.99}25%{translate:0 calc(var(--stepY)*-1);rotate:0deg;scale:1.025}50%{translate:0 0;rotate:calc(var(--stepRot)*.8);scale:.99}75%{translate:0 calc(var(--stepY)*-1);rotate:0deg;scale:1.025}100%{translate:0 1px;rotate:calc(var(--stepRot)*-.8);scale:.99}}
     @keyframes stepDust{0%,49%{transform:translateX(-18%) scale(.45);opacity:.8}50%,100%{transform:translateX(18%) scale(1);opacity:.15}}
     @keyframes echoTrail{0%{transform:translateX(-3px) scale(.98);opacity:.42}100%{transform:translateX(-30px) scale(1.07);opacity:0}}
     @keyframes attackArc{0%{transform:rotate(-55deg) scale(.2);opacity:0}30%{opacity:1}100%{transform:rotate(52deg) scale(1.15);opacity:0}}
@@ -203,7 +203,7 @@
     /* Full-body model sheets: eight generated fighting poses per character in a 4 × 2 grid. */
     .fighter{height:clamp(104px,20vw,220px)}
     .sprite{overflow:hidden;background:none!important;animation:none!important;image-rendering:auto;filter:drop-shadow(0 18px 8px rgba(0,0,0,.3))}
-    .sprite-sheet{position:absolute;left:0;top:0;width:400%;height:200%;max-width:none;object-fit:fill;object-position:initial;transform-origin:0 0;pointer-events:none;user-select:none}
+    .sprite-sheet,.echo-sheet{position:absolute;left:0;top:0;width:400%;height:200%;max-width:none;object-fit:fill;object-position:initial;transform-origin:0 0;pointer-events:none;user-select:none}
     .fighter.state-idle .sprite,.fighter.state-walk .sprite,.fighter.state-lp .sprite,.fighter.state-hp .sprite,.fighter.state-lk .sprite,.fighter.state-hk .sprite,.fighter.state-upper .sprite,.fighter.state-crouch .sprite,.fighter.state-jumpatk .sprite,.fighter.state-special .sprite,.fighter.state-hit .sprite,.fighter.state-ko .sprite,.fighter.state-guard .sprite{animation:none!important}
     .fighter.state-guard .sprite{filter:drop-shadow(0 18px 8px rgba(0,0,0,.28)) drop-shadow(0 0 12px #64e6ff)}
     .fighter.state-hit .sprite{filter:brightness(1.55) saturate(.55) drop-shadow(0 0 9px #fff)}
@@ -318,8 +318,8 @@
           <div class="hud-player cpu"><div class="hud-name" id="cName"></div><div class="hp-track"><div class="hp-fill" id="cHp"></div></div><div class="energy-track"><div class="energy-fill" id="cEnergy"></div></div><div class="guard-track" aria-label="对手防御槽"><div class="guard-fill" id="cGuard"></div></div></div>
         </div>
         <button class="pause-btn" id="pauseBtn" aria-label="暂停">Ⅱ</button>
-        <div class="fighter" id="playerFighter"><div class="fighter-shadow"></div><div class="sprite-shell"><div class="sprite" role="img" aria-label="玩家奶蛙全身模型逐帧动作"><img class="sprite-sheet" alt="" decoding="sync"></div><i class="attack-arc"></i><div class="laugh-sprite"></div></div></div>
-        <div class="fighter" id="cpuFighter"><div class="fighter-shadow"></div><div class="sprite-shell"><div class="sprite" role="img" aria-label="电脑奶蛙全身模型逐帧动作"><img class="sprite-sheet" alt="" decoding="sync"></div><i class="attack-arc"></i><div class="laugh-sprite"></div></div></div>
+        <div class="fighter" id="playerFighter"><div class="fighter-shadow"></div><div class="sprite-shell"><div class="motion-echo echo-b" aria-hidden="true"><img class="echo-sheet" alt="" decoding="sync"></div><div class="motion-echo echo-a" aria-hidden="true"><img class="echo-sheet" alt="" decoding="sync"></div><div class="sprite" role="img" aria-label="玩家奶蛙全身模型逐帧动作"><img class="sprite-sheet" alt="" decoding="sync"></div><i class="attack-arc"></i><div class="laugh-sprite"></div></div></div>
+        <div class="fighter" id="cpuFighter"><div class="fighter-shadow"></div><div class="sprite-shell"><div class="motion-echo echo-b" aria-hidden="true"><img class="echo-sheet" alt="" decoding="sync"></div><div class="motion-echo echo-a" aria-hidden="true"><img class="echo-sheet" alt="" decoding="sync"></div><div class="sprite" role="img" aria-label="电脑奶蛙全身模型逐帧动作"><img class="sprite-sheet" alt="" decoding="sync"></div><i class="attack-arc"></i><div class="laugh-sprite"></div></div></div>
         <div class="callout" id="callout"></div>
         <div class="pause-overlay hidden" id="pauseOverlay"><div class="modal"><h2>暂停</h2><p>奶蛙正在喘口气</p><div class="modal-actions"><button id="resumeBtn">继续对战</button><button id="quitBtn" class="secondary">重选角色</button></div></div></div>
         <div class="end-overlay hidden" id="endOverlay"><div class="modal"><h2 id="endTitle"></h2><p id="endText"></p><div class="score-card hidden" id="scoreCard" aria-live="polite"></div><div class="modal-actions"><button id="rematchBtn">再来一局</button><button id="changeBtn" class="secondary">重选角色</button></div></div></div>
@@ -602,10 +602,10 @@
   }
 
   function makeState(side,index){
-    const data=fighters[index],el=$(side==='p'?'#playerFighter':'#cpuFighter'),sprite=el.querySelector('.sprite'),sheet=sprite.querySelector('.sprite-sheet');
-    sheet.onerror=()=>{const step=Number(sheet.dataset.fallbackStep)||0;if(step===0){sheet.dataset.fallbackStep='1';sheet.src=fighterAsset('model',data.key,'png')}else if(step===1){sheet.dataset.fallbackStep='2';sheet.src=fighterAsset('model','classic','png')}};
-    sheet.dataset.fighterKey=data.key;sheet.dataset.fallbackStep='0';sheet.src=modelAsset(data.key);sprite.setAttribute('aria-label',data.name+'全身模型逐帧动作');
-    return {side,data,el,sprite,sheet,shell:el.querySelector('.sprite-shell'),lastPose:-1,hp:data.hp,maxHp:data.hp,energy:0,guardMeter:100,guardMax:100,guardRecoverAt:0,invulnUntil:0,crushedUntil:0,lastHit:false,cancelUntil:0,buffered:null,x:side==='p'?22:78,y:0,vx:0,vy:0,onGround:true,lastGroundedAt:0,jumpBufferedUntil:0,busy:0,guard:false,dead:false,state:'idle',anim:{row:'idle',start:0,dur:920,loop:true},combo:0};
+    const data=fighters[index],el=$(side==='p'?'#playerFighter':'#cpuFighter'),sprite=el.querySelector('.sprite'),sheet=sprite.querySelector('.sprite-sheet'),echoSheets=Array.from(el.querySelectorAll('.echo-sheet'));
+    [sheet].concat(echoSheets).forEach(modelSheet=>{modelSheet.onerror=()=>{const step=Number(modelSheet.dataset.fallbackStep)||0;if(step===0){modelSheet.dataset.fallbackStep='1';modelSheet.src=fighterAsset('model',data.key,'png')}else if(step===1){modelSheet.dataset.fallbackStep='2';modelSheet.src=fighterAsset('model','classic','png')}};modelSheet.dataset.fighterKey=data.key;modelSheet.dataset.fallbackStep='0';modelSheet.src=modelAsset(data.key)});
+    sprite.setAttribute('aria-label',data.name+'全身模型逐帧动作');
+    return {side,data,el,sprite,sheet,echoSheets,shell:el.querySelector('.sprite-shell'),lastPose:-1,hp:data.hp,maxHp:data.hp,energy:0,guardMeter:100,guardMax:100,guardRecoverAt:0,invulnUntil:0,crushedUntil:0,lastHit:false,cancelUntil:0,buffered:null,x:side==='p'?22:78,y:0,vx:0,vy:0,onGround:true,lastGroundedAt:0,jumpBufferedUntil:0,busy:0,guard:false,dead:false,state:'idle',anim:{row:'idle',start:0,dur:920,loop:true},combo:0};
   }
   function startFight(){
     if(startingFight)return;
@@ -638,7 +638,7 @@
   function applySnapshot(data){if(!player||!cpu)return;sim=Number(data.sim)||sim;timeLeft=Number(data.time);$('#timer').textContent=timeLeft;applyFighterSnapshot(player,data.p);applyFighterSnapshot(cpu,data.c);faceEachOther();updateParallax();updateHud()}
   function guestRenderLoop(t){if(!running||netRole!=='guest')return;renderFrames(player);renderFrames(cpu);guestRaf=requestAnimationFrame(guestRenderLoop)}
   function setAnim(f,row,dur,loop,force){if(!force&&f.state===row&&f.anim&&f.anim.loop===loop)return;f.state=row;f.anim={row,start:sim,dur,loop:!!loop};setState(f,row)}
-  function setPoseFrame(f,pose){if(!f||!f.sheet||f.lastPose===pose)return;f.lastPose=pose;const col=pose%4,row=Math.floor(pose/4);f.sheet.style.transform='translate3d('+(-col*25)+'%,'+(-row*50)+'%,0)'}
+  function setPoseFrame(f,pose){if(!f||!f.sheet||f.lastPose===pose)return;f.lastPose=pose;const col=pose%4,row=Math.floor(pose/4),frameTransform='translate3d('+(-col*25)+'%,'+(-row*50)+'%,0)';f.sheet.style.transform=frameTransform;if(f.echoSheets)f.echoSheets.forEach(echo=>echo.style.transform=frameTransform)}
   function renderFrames(f){const seq=poseFrames[f.anim.row]||poseFrames.idle,elapsed=Math.max(0,sim-f.anim.start),step=f.anim.loop?Math.floor(elapsed/(f.anim.dur/seq.length))%seq.length:Math.min(seq.length-1,Math.floor(elapsed/(f.anim.dur/seq.length)));setPoseFrame(f,seq[step])}
   function approach(value,target,amount){return value<target?Math.min(target,value+amount):value>target?Math.max(target,value-amount):target}
   function setMoveVelocity(f,dir,maxSpeed,dt){const target=dir*maxSpeed,rate=dir?ACC:DEC;f.vx=approach(f.vx,target,rate*dt);if(!dir&&Math.abs(f.vx)<.08)f.vx=0}
@@ -652,7 +652,7 @@
   function separateFighters(){if(!player||!cpu)return;const gap=cpu.x-player.x;if(Math.abs(gap)<7){const push=(7-Math.abs(gap))/2*(gap>=0?1:-1);player.x=Math.max(7,Math.min(93,player.x-push));cpu.x=Math.max(7,Math.min(93,cpu.x+push))}}
   function renderState(f){const x=arenaWidth*f.x/100,y=-f.y;f.el.style.setProperty('--fighter-x',x+'px');f.el.style.setProperty('--fighter-y',y+'px');f.el.style.transform='translate3d(calc('+x+'px - 50%),'+y+'px,0)';f.el.classList.toggle('jumping',!f.onGround);renderFrames(f)}
   function faceEachOther(){player.shell.style.transform='scaleX('+(player.x<=cpu.x?1:-1)+')';cpu.shell.style.transform='scaleX('+(cpu.x<=player.x?1:-1)+')'}
-  function setState(f,state){['idle','duck','walk','lp','hp','lk','hk','upper','crouch','jumpatk','special','hit','ko','guard','roll','victory'].forEach(s=>f.el.classList.toggle('state-'+s,s===state))}
+  function setState(f,state){['idle','duck','walk','lp','hp','lk','hk','upper','crouch','jumpatk','special','hit','ko','guard','roll','victory'].forEach(s=>f.el.classList.toggle('state-'+s,s===state));f.el.classList.toggle('state-light',['lp','lk','crouch'].includes(state));f.el.classList.toggle('state-heavy',['hp','hk','upper','jumpatk'].includes(state))}
 
   function performJump(f){f.jumpBufferedUntil=0;f.onGround=false;f.vy=JUMP_V+(f.data.key==='bounce'?25:0);f.busy=sim+390;setAnim(f,'jumpatk',620,false,true);gameAudio.playSfx('andy',.24)}
   function jump(f){if(!running||paused||!f||f.dead)return;const canLeap=(f.onGround||sim-f.lastGroundedAt<=COYOTE_MS)&&sim>=f.busy;if(canLeap)performJump(f);else f.jumpBufferedUntil=sim+JUMP_BUFFER_MS}
@@ -664,6 +664,7 @@
   };
   function toast(text){const e=document.createElement('div');e.className='combat-toast';e.textContent=text;arena.appendChild(e);setTimeout(()=>e.remove(),850)}
   function hitFreeze(ms,tier){hitPauseUntil=Math.max(hitPauseUntil,performance.now()+ms);if(shakeAnimation)shakeAnimation.cancel();const special=tier==='special',heavy=tier===true||tier==='heavy'||special;const frames=special?[{transform:'translate3d(0,0,0)'},{transform:'translate3d(-10px,2px,0)'},{transform:'translate3d(10px,-3px,0)'},{transform:'translate3d(-8px,3px,0)'},{transform:'translate3d(7px,-2px,0)'},{transform:'translate3d(-4px,1px,0)'},{transform:'translate3d(0,0,0)'}]:heavy?[{transform:'translate3d(0,0,0)'},{transform:'translate3d(-6px,1px,0)'},{transform:'translate3d(5px,-2px,0)'},{transform:'translate3d(-4px,2px,0)'},{transform:'translate3d(3px,0,0)'},{transform:'translate3d(0,0,0)'}]:[{transform:'translate3d(0,0,0)'},{transform:'translate3d(-2px,0,0)'},{transform:'translate3d(2px,1px,0)'},{transform:'translate3d(0,0,0)'}];shakeAnimation=arena.animate(frames,{duration:special?240:(heavy?190:120),easing:motionEase.shake});shakeAnimation.onfinish=()=>{shakeAnimation=null}}
+  function vibrateOnHit(kind){if(!('vibrate' in navigator))return;const pattern=kind==='special'?[30,50,30]:(['hp','hk','upper'].includes(kind)?20:10);try{navigator.vibrate(pattern)}catch(_){}}
   function regenGuard(f,dt){if(!f||f.dead||f.guard||sim<f.guardRecoverAt||f.guardMeter>=f.guardMax)return;f.guardMeter=Math.min(f.guardMax,f.guardMeter+9*dt);updateHud()}
   function runBuffered(f){if(!f||!f.buffered)return;if(sim>f.buffered.until){f.buffered=null;return}if(sim>=f.busy||f.lastHit&&sim<=f.cancelUntil){const k=f.buffered.kind;f.buffered=null;f.busy=sim;attack(f,k)}}
   function roll(f){if(!running||paused||!f||f.dead||!f.onGround||sim<f.busy)return;const dir=f===player?((held.right?1:0)-(held.left?1:0)||1):((remoteHeld.right?1:0)-(remoteHeld.left?1:0)||-1);f.busy=sim+550;f.invulnUntil=sim+400;setAnim(f,'roll',550,false,true);const start=f.x;queue(70,()=>f.x=Math.max(7,Math.min(93,start+dir*12)));queue(550,()=>{if(!f.dead)setAnim(f,'idle',920,true,true)});gameAudio.playSfx('andy',.18)}
@@ -697,7 +698,7 @@
     if(!running||target.dead||sim<target.invulnUntil)return;cfg=cfg||{hitstop:180,stun:330,block:280,push:3,guard:12};const guarding=canBlock(target,kind);const raw=dmg;dmg=guarding?(kind==='special'?Math.max(1,Math.floor(raw/6)):0):Math.max(1,Math.round(raw/target.data.defense));
     const attackerStats=statsFor(attacker),targetStats=statsFor(target);if(targetStats)targetStats.incoming++;if(guarding){if(targetStats)targetStats.blocks++}else if(attackerStats&&targetStats){attackerStats.hits++;attackerStats.damageDealt+=dmg;targetStats.damageTaken+=dmg;attackerStats.combo=sim<=attackerStats.comboUntil?attackerStats.combo+1:1;attackerStats.comboUntil=sim+cfg.stun+260;attackerStats.maxCombo=Math.max(attackerStats.maxCombo,attackerStats.combo);if(kind==='special')attackerStats.specialHits++}
     target.hp=Math.max(0,target.hp-dmg);attacker.lastHit=!guarding;attacker.cancelUntil=sim+(guarding?0:cfg.hitstop+100);attacker.energy=Math.min(100,attacker.energy+(kind==='special'?5:12));target.energy=Math.min(100,target.energy+(guarding?10:7));
-    const stop=Math.max(50,cfg.hitstop-(guarding?33:0));hitFreeze(stop,kind==='special'?'special':(['hp','hk','upper'].includes(kind)?'heavy':'light'));
+    const stop=Math.max(50,cfg.hitstop-(guarding?33:0));hitFreeze(stop,kind==='special'?'special':(['hp','hk','upper'].includes(kind)?'heavy':'light'));if(!guarding)vibrateOnHit(kind);
     const dir=Math.sign(target.x-attacker.x)||1;target.x=Math.max(7,Math.min(93,target.x+dir*cfg.push));attacker.x=Math.max(7,Math.min(93,attacker.x-dir*cfg.push*.38));
     if(guarding){target.guardMeter=Math.max(0,target.guardMeter-cfg.guard);target.guardRecoverAt=sim+1000;target.busy=Math.max(target.busy,sim+cfg.block);setAnim(target,'guard',cfg.block,false,true);impact(target,dmg,attacker.data.fx,true,kind);gameAudio.playSfx('ice',.28);if(target.guardMeter<=0)guardCrush(target)}else{target.busy=Math.max(target.busy,sim+cfg.stun);impact(target,dmg,attacker.data.fx,false,kind);gameAudio.playSfx(kind==='special'?'sfx4':(['hp','hk','upper'].includes(kind)?'sfx3':'sfx1'),.36);setAnim(target,['hp','hk','special'].includes(kind)?'ko':'hit',cfg.stun,false,true)}
     if(target.hp<=0)finish(attacker,'KO');else queue(Math.max(cfg.stun,cfg.block)+25,()=>{if(!target.dead&&sim>=target.busy&&target.onGround)setAnim(target,'idle',920,true)});updateHud()
