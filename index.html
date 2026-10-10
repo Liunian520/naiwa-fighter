@@ -87,6 +87,10 @@
     .invite-code{font:900 22px/1 "Microsoft YaHei","PingFang SC",sans-serif;letter-spacing:.16em;color:var(--blue)}
     .copy-code{padding:7px 9px;background:var(--ink)}
     .net-status{margin:9px 0 0!important;color:var(--muted)!important;font-size:11px!important;line-height:1.45}
+    .lobby{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+    .lobby-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.lobby-head strong{font-size:13px}.lobby-refresh{border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--panel);color:var(--blue);font-size:11px;font-weight:900;cursor:pointer}
+    .lobby-list{display:grid;gap:6px;margin-top:7px;max-height:164px;overflow:auto;overscroll-behavior:contain}.lobby-empty{margin:0!important;padding:10px;border-radius:8px;background:color-mix(in srgb,var(--panel) 75%,var(--line));color:var(--muted)!important;font-size:11px!important;text-align:center}
+    .room-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 9px;border-radius:9px;background:var(--panel);box-shadow:inset 0 0 0 1px var(--line)}.room-row b{display:block;font-size:12px}.room-row small{display:block;margin-top:2px;color:var(--muted);font-size:10px}.room-row button{border:0;border-radius:8px;padding:7px 10px;background:var(--blue);color:#fff;font-size:11px;font-weight:900;cursor:pointer}.room-row button:disabled{background:var(--line);color:var(--muted);cursor:default}
     .start-btn:disabled{cursor:not-allowed;filter:grayscale(.35);opacity:.58;box-shadow:0 3px 0 #7f2931;transform:none}
 
     /* Battle */
@@ -227,7 +231,7 @@
       </div>
       <nav class="home-menu" aria-label="游戏主菜单">
         <button class="home-action primary" id="homeStart" type="button"><span class="home-symbol">拳</span><span><b>开始游戏 · 选角</b><small>单人挑战电脑斗士</small></span><span class="home-arrow">›</span></button>
-        <button class="home-action online" id="homeOnline" type="button"><span class="home-symbol">联</span><span><b>联机 PK</b><small>创建或输入 6 位邀请码</small></span><span class="home-arrow">›</span></button>
+        <button class="home-action online" id="homeOnline" type="button"><span class="home-symbol">联</span><span><b>联机大厅</b><small>查看开放房间，一键加入 PK</small></span><span class="home-arrow">›</span></button>
       </nav>
       <footer class="home-footer"><strong>作者：流年似水</strong><br>© 2026 流年似水 版权所有 · 与 MUSE.AI 协作创作 <span lang="en">(Co-created with MUSE.AI)</span><br><span class="opensource">本项目已开源</span> · <a href="https://github.com/Liunian520/naiwa-fighter" target="_blank" rel="noopener">GitHub · Liunian520/naiwa-fighter</a></footer>
     </section>
@@ -253,7 +257,11 @@
             <button class="mode-btn" id="onlineMode" type="button">邀请码联机</button>
           </div>
           <div class="online-panel hidden" id="onlinePanel">
-            <div class="online-actions"><button id="createRoom" type="button">创建房间</button><button id="resetRoom" type="button">断开重来</button></div>
+            <div class="online-actions"><button id="createRoom" type="button">创建公开房间</button><button id="resetRoom" type="button">断开重来</button></div>
+            <div class="lobby">
+              <div class="lobby-head"><strong>当前开放房间</strong><button class="lobby-refresh" id="refreshLobby" type="button">刷新大厅</button></div>
+              <div class="lobby-list" id="lobbyList" aria-live="polite"><p class="lobby-empty">正在连接联机大厅…</p></div>
+            </div>
             <div class="join-row"><input id="inviteInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="输入 6 位邀请码" aria-label="邀请码"><button id="joinRoom" type="button">加入</button></div>
             <div class="invite-box hidden" id="inviteBox"><span class="invite-code" id="inviteCode"></span><button class="copy-code" id="copyCode" type="button">复制</button></div>
             <p class="net-status" id="netStatus">创建房间后，把 6 位数字邀请码发给朋友；双方保持页面打开即可对战。</p>
@@ -347,9 +355,10 @@
   let selected=0,player=null,cpu=null,running=false,paused=false,last=0,raf=0,timeLeft=60,timerId=0,aiId=0,sim=0,events=[],matchToken=0,pauseAt=0;
   const held={left:false,right:false,down:false,guard:false},remoteHeld={left:false,right:false,down:false,guard:false};
   let gameMode='solo',mqttClient=null,roomTopic='',netRole=null,remoteSelected=0,netReady=false,lastNetSync=0,guestRaf=0,peerSeen=false,hitPauseUntil=0,inputBuffer=null;
-  const mqttBroker='wss://broker.emqx.io:8084/mqtt';
+  const mqttBroker='wss://broker.emqx.io:8084/mqtt',lobbyRoot='naiwa-fighter/lobby-v1/';
   const netId='nf-'+Math.random().toString(36).slice(2,10)+'-'+Date.now().toString(36);
-  let mqttLoader=null;
+  let mqttLoader=null,lobbyClient=null,lobbyTimer=0,lobbyHeartbeat=0,hostLobbyTopic='',hostLobbyCreatedAt=0;
+  const lobbyRooms=new Map();
   function loadMqtt(){
     if(window.mqtt&&typeof window.mqtt.connect==='function')return Promise.resolve(true);
     if(mqttLoader)return mqttLoader;
@@ -359,16 +368,17 @@
   }
 
   const warmedModels=new Set();
-  function warmModel(key){if(warmedModels.has(key))return;warmedModels.add(key);const img=new Image();img.decoding='async';img.src='assets/model-'+key+'.webp'}
-  function openSelect(mode){homeScreen.classList.add('hidden');selectScreen.classList.remove('hidden');setMode(mode||'solo');window.scrollTo(0,0)}
-  function openHome(){if(running)return;selectScreen.classList.add('hidden');battleScreen.classList.add('hidden');homeScreen.classList.remove('hidden');window.scrollTo(0,0)}
+  function fighterAsset(kind,key){return 'assets/'+kind+'-'+key+(key==='tea'?'.png':'.webp')}
+  function warmModel(key){if(warmedModels.has(key))return;warmedModels.add(key);const img=new Image();img.decoding='async';img.src=fighterAsset('model',key)}
+  function openSelect(mode){homeScreen.classList.add('hidden');selectScreen.classList.remove('hidden');setMode(mode||'solo');if(mode==='online')openLobby();window.scrollTo(0,0)}
+  function openHome(){if(running)return;selectScreen.classList.add('hidden');battleScreen.classList.add('hidden');homeScreen.classList.remove('hidden');closeLobby();window.scrollTo(0,0)}
   function renderRoster(){
     roster.innerHTML='';
-    fighters.forEach((f,i)=>{const b=document.createElement('button');b.className='char-card'+(i===selected?' selected':'');b.dataset.index=i;b.innerHTML='<img src="assets/char-'+f.key+'.webp" alt="'+f.name+'角色立绘" loading="lazy" decoding="async"><span class="type">'+f.type+'</span><span class="name">'+f.name+'</span>';b.addEventListener('click',()=>pick(i));roster.appendChild(b)});
+    fighters.forEach((f,i)=>{const b=document.createElement('button');b.className='char-card'+(i===selected?' selected':'');b.dataset.index=i;b.innerHTML='<img src="'+fighterAsset('char',f.key)+'" alt="'+f.name+'角色立绘" loading="lazy" decoding="async"><span class="type">'+f.type+'</span><span class="name">'+f.name+'</span>';b.addEventListener('click',()=>pick(i));roster.appendChild(b)});
     updatePick();
   }
-  function pick(i){selected=i;$$('.char-card').forEach((b,n)=>b.classList.toggle('selected',n===i));updatePick();warmModel(fighters[i].key);playSound('sfx'+((i%4)+1),.2);netSend({type:'select',index:i})}
-  function updatePick(){const f=fighters[selected];$('#pickImage').src='assets/char-'+f.key+'.webp';$('#pickName').textContent=f.name;$('#pickDesc').textContent=f.desc;$('#powerStat').style.width=Math.round(f.power/17*100)+'%';$('#speedStat').style.width=Math.round(f.speed/16*100)+'%';$('#hpStat').style.width=Math.round(f.hp/114*100)+'%';$('#defStat').style.width=Math.round(f.defense/1.12*100)+'%'}
+  function pick(i){selected=i;$$('.char-card').forEach((b,n)=>b.classList.toggle('selected',n===i));updatePick();warmModel(fighters[i].key);playSound('sfx'+((i%4)+1),.2);netSend({type:'select',index:i});if(hostLobbyTopic)publishRoomListing(hostLobbyTopic.slice(lobbyRoot.length))}
+  function updatePick(){const f=fighters[selected];$('#pickImage').src=fighterAsset('char',f.key);$('#pickName').textContent=f.name;$('#pickDesc').textContent=f.desc;$('#powerStat').style.width=Math.round(f.power/17*100)+'%';$('#speedStat').style.width=Math.round(f.speed/16*100)+'%';$('#hpStat').style.width=Math.round(f.hp/114*100)+'%';$('#defStat').style.width=Math.round(f.defense/1.12*100)+'%'}
   function unlockAudio(){
     const AudioCtor=window.AudioContext||window.webkitAudioContext;
     if(AudioCtor&&!audioCtx)audioCtx=new AudioCtor();
@@ -404,16 +414,39 @@
     try{mqttClient.publish(roomTopic,JSON.stringify(Object.assign({sender:netId,role:netRole,sentAt:Date.now()},data)),{qos:0,retain:false})}catch(_){}
   }
   function setNetStatus(text,isError){const e=$('#netStatus');e.textContent=text;e.style.color=isError?'var(--red)':''}
+  function roomAge(ts){const sec=Math.max(0,Math.floor((Date.now()-ts)/1000));return sec<10?'刚刚创建':sec<60?sec+' 秒前创建':Math.floor(sec/60)+' 分钟前创建'}
+  function renderLobby(){
+    const list=$('#lobbyList'),now=Date.now();if(!list)return;
+    Array.from(lobbyRooms.entries()).forEach(([code,room])=>{if(!room||room.expiresAt<=now)lobbyRooms.delete(code)});
+    const rooms=Array.from(lobbyRooms.values()).sort((a,b)=>b.createdAt-a.createdAt);list.innerHTML='';
+    if(!rooms.length){const p=document.createElement('p');p.className='lobby-empty';p.textContent=lobbyClient&&lobbyClient.connected?'暂时没有开放房间，创建一个等朋友加入吧。':'正在连接联机大厅…';list.appendChild(p);return}
+    rooms.forEach(room=>{const row=document.createElement('div');row.className='room-row';const text=document.createElement('span'),name=document.createElement('b'),meta=document.createElement('small'),join=document.createElement('button');name.textContent=(fighters[room.index]||fighters[0]).name+'的房间';meta.textContent='#'+room.code+' · '+roomAge(room.createdAt);text.append(name,meta);join.type='button';join.textContent=room.owner===netId?'我的房间':'直接加入';join.disabled=room.owner===netId;join.addEventListener('click',()=>joinOnlineRoom(room.code));row.append(text,join);list.appendChild(row)})
+  }
+  async function openLobby(){
+    const list=$('#lobbyList');if(list)list.innerHTML='<p class="lobby-empty">正在连接联机大厅…</p>';
+    if(!await loadMqtt()){if(list)list.innerHTML='<p class="lobby-empty">大厅组件加载失败，请检查网络后重试。</p>';return}
+    if(lobbyClient){if(lobbyClient.connected)lobbyClient.subscribe(lobbyRoot+'#');renderLobby();return}
+    lobbyClient=window.mqtt.connect(mqttBroker,{clientId:netId+'-hall-'+Math.random().toString(16).slice(2,6),clean:true,keepalive:20,reconnectPeriod:2500,connectTimeout:10000});
+    lobbyClient.on('connect',()=>{lobbyClient.subscribe(lobbyRoot+'#',err=>{if(err&&list)list.innerHTML='<p class="lobby-empty">大厅连接失败，请稍后刷新。</p>';else renderLobby()})});
+    lobbyClient.on('message',(topic,payload)=>{if(!topic.startsWith(lobbyRoot))return;const code=topic.slice(lobbyRoot.length);if(!/^\d{6}$/.test(code))return;if(!payload.length){lobbyRooms.delete(code);renderLobby();return}let room;try{room=JSON.parse(payload.toString())}catch(_){return}if(!room||room.code!==code||room.status!=='open'||!Number.isFinite(room.expiresAt)||room.expiresAt<=Date.now()){lobbyRooms.delete(code);renderLobby();return}room.index=Math.max(0,Math.min(fighters.length-1,Number(room.index)||0));lobbyRooms.set(code,room);renderLobby()});
+    lobbyClient.on('offline',renderLobby);lobbyClient.on('error',()=>{if(list)list.innerHTML='<p class="lobby-empty">大厅连接失败，请检查网络后重试。</p>'});
+    clearInterval(lobbyTimer);lobbyTimer=setInterval(renderLobby,5000);
+  }
+  function closeLobby(){clearInterval(lobbyTimer);lobbyTimer=0;lobbyRooms.clear();if(lobbyClient){try{lobbyClient.end(true)}catch(_){}lobbyClient=null}}
+  function publishRoomListing(code){if(!mqttClient||!mqttClient.connected||netRole!=='host')return;hostLobbyTopic=lobbyRoot+code;if(!hostLobbyCreatedAt)hostLobbyCreatedAt=Date.now();const payload=JSON.stringify({code:code,index:selected,status:'open',owner:netId,createdAt:hostLobbyCreatedAt,expiresAt:Date.now()+25000});mqttClient.publish(hostLobbyTopic,payload,{qos:0,retain:true});lobbyRooms.set(code,JSON.parse(payload));renderLobby()}
+  function announceRoom(code){clearInterval(lobbyHeartbeat);if(!hostLobbyTopic)hostLobbyCreatedAt=Date.now();publishRoomListing(code);lobbyHeartbeat=setInterval(()=>publishRoomListing(code),8000)}
+  function clearRoomListing(){clearInterval(lobbyHeartbeat);lobbyHeartbeat=0;hostLobbyCreatedAt=0;if(hostLobbyTopic){const topic=hostLobbyTopic;hostLobbyTopic='';lobbyRooms.delete(topic.slice(lobbyRoot.length));renderLobby();const sender=mqttClient&&mqttClient.connected?mqttClient:lobbyClient&&lobbyClient.connected?lobbyClient:null;if(sender)try{sender.publish(topic,'',{qos:0,retain:true})}catch(_){}}}
   function refreshStartButton(){const b=$('#startBtn');if(gameMode==='solo'){b.disabled=false;b.textContent='带它上场';return}if(!netReady){b.disabled=true;b.textContent='等待联机';return}if(netRole==='host'){b.disabled=false;b.textContent='开始联机对战'}else{b.disabled=true;b.textContent='等待房主开战'}}
   function closeMqtt(){
-    if(mqttClient){try{if(mqttClient.connected&&roomTopic)mqttClient.publish(roomTopic,JSON.stringify({sender:netId,role:netRole,type:'leave'}),{qos:0,retain:false});mqttClient.end(true)}catch(_){}}
+    clearRoomListing();
+    if(mqttClient){try{if(mqttClient.connected&&roomTopic)mqttClient.publish(roomTopic,JSON.stringify({sender:netId,role:netRole,type:'leave'}),{qos:0,retain:false});mqttClient.end(false)}catch(_){}}
     mqttClient=null;roomTopic='';peerSeen=false;
   }
   function resetNetwork(keepMode){
     netReady=false;netRole=null;remoteSelected=0;closeMqtt();
     $('#inviteBox').classList.add('hidden');$('#inviteCode').textContent='';$('#inviteInput').value='';setNetStatus('创建房间后，把 6 位数字邀请码发给朋友；双方保持页面打开即可对战。');if(!keepMode)setMode('solo');else refreshStartButton();
   }
-  function setMode(mode){gameMode=mode;$('#soloMode').classList.toggle('active',mode==='solo');$('#onlineMode').classList.toggle('active',mode==='online');$('#onlinePanel').classList.toggle('hidden',mode!=='online');if(mode==='solo'&&mqttClient)resetNetwork(true);refreshStartButton()}
+  function setMode(mode){gameMode=mode;$('#soloMode').classList.toggle('active',mode==='solo');$('#onlineMode').classList.toggle('active',mode==='online');$('#onlinePanel').classList.toggle('hidden',mode!=='online');if(mode==='solo'){if(mqttClient)resetNetwork(true);closeLobby()}refreshStartButton()}
   function makeCode(){return String(Math.floor(100000+Math.random()*900000))}
   function connectMqtt(code,role){
     if(!window.mqtt||typeof window.mqtt.connect!=='function'){setNetStatus('MQTT 联机组件加载失败，请检查网络后刷新页面。',true);return}
@@ -423,9 +456,9 @@
     mqttClient.on('connect',()=>{
       mqttClient.subscribe(roomTopic,{qos:0},err=>{
         if(err){setNetStatus('订阅房间失败，请断开后重试。',true);return}
-        setNetStatus(role==='host'?'房间已创建，把邀请码发给朋友。':'已进入房间，正在等待房主确认…');
+        setNetStatus(role==='host'?'房间已公开到联机大厅，好友可直接加入。':'已进入房间，正在等待房主确认…');
         netSend({type:'hello',index:selected});
-        if(role==='host')netSend({type:'host-ready',index:selected});
+        if(role==='host'){netSend({type:'host-ready',index:selected});announceRoom(code)};
       });
     });
     mqttClient.on('message',(topic,payload)=>{
@@ -440,8 +473,8 @@
   async function createOnlineRoom(){
     resetNetwork(true);const code=makeCode();$('#inviteCode').textContent=code;$('#inviteBox').classList.remove('hidden');setNetStatus('正在加载联机组件…');if(!await loadMqtt()){setNetStatus('联机组件加载失败，请检查网络后重试。',true);return}setNetStatus('正在通过 MQTT 创建房间…');connectMqtt(code,'host');
   }
-  async function joinOnlineRoom(){
-    const code=$('#inviteInput').value.trim().replace(/\D/g,'');if(code.length!==6){setNetStatus('请输入完整的 6 位数字邀请码。',true);return}
+  async function joinOnlineRoom(roomCode){
+    const code=String(roomCode||$('#inviteInput').value).trim().replace(/\D/g,'');if(code.length!==6){setNetStatus('请输入完整的 6 位数字邀请码。',true);return}
     resetNetwork(true);$('#inviteInput').value=code;setNetStatus('正在加载联机组件…');if(!await loadMqtt()){setNetStatus('联机组件加载失败，请检查网络后重试。',true);return}setNetStatus('正在通过 MQTT 加入房间…');connectMqtt(code,'guest');
   }
   function handleNetData(data){
@@ -449,7 +482,7 @@
     if(data.type==='hello'){
       if((netRole==='host'&&data.role!=='guest')||(netRole==='guest'&&data.role!=='host'))return;
       remoteSelected=Math.max(0,Math.min(fighters.length-1,Number(data.index)||0));peerSeen=true;
-      if(netRole==='host'){netReady=true;setNetStatus('好友已加入！双方选好角色后即可开始。');netSend({type:'host-ready',index:selected})}
+      if(netRole==='host'){netReady=true;clearRoomListing();setNetStatus('好友已加入！双方选好角色后即可开始。');netSend({type:'host-ready',index:selected})}
       else if(data.role==='host'){netReady=true;setNetStatus('连接成功！选好角色，等待房主开战。')}
       refreshStartButton();return;
     }
@@ -457,7 +490,7 @@
       remoteSelected=Math.max(0,Math.min(fighters.length-1,Number(data.index)||0));peerSeen=true;netReady=true;setNetStatus('连接成功！选好角色，等待房主开战。');refreshStartButton();return;
     }
     if(data.type==='select'){remoteSelected=Math.max(0,Math.min(fighters.length-1,Number(data.index)||0));return}
-    if(data.type==='leave'){netReady=false;peerSeen=false;setNetStatus('对手已离开房间。可断开重来后重新联机。',true);refreshStartButton();if(running)finish(netRole==='host'?player:cpu,'对手离线');return}
+    if(data.type==='leave'){netReady=false;peerSeen=false;setNetStatus(netRole==='host'?'对手已离开，房间已重新开放。':'对手已离开房间。可断开重来后重新联机。',netRole!=='host');refreshStartButton();if(netRole==='host'&&roomTopic)announceRoom(roomTopic.slice(roomTopic.lastIndexOf('/')+1));if(running)finish(netRole==='host'?player:cpu,'对手离线');return}
     if(data.type==='start'&&netRole==='guest'){startFightSetup(data.hostIndex,data.guestIndex,true);return}
     if(data.type==='hold'&&netRole==='host'&&Object.prototype.hasOwnProperty.call(remoteHeld,data.key))remoteHeld[data.key]=!!data.down;
     if(data.type==='action'&&netRole==='host'&&running){if(data.action==='jump')jump(cpu);else if(data.action==='roll')roll(cpu);else attack(cpu,data.action,!!data.hitClaim)}
@@ -471,11 +504,11 @@
 
   function makeState(side,index){
     const data=fighters[index],el=$(side==='p'?'#playerFighter':'#cpuFighter'),sprite=el.querySelector('.sprite');
-    sprite.style.backgroundImage='url("assets/model-'+data.key+'.webp")';sprite.setAttribute('aria-label',data.name+'全身模型逐帧动作');
+    sprite.style.backgroundImage='url("'+fighterAsset('model',data.key)+'")';sprite.setAttribute('aria-label',data.name+'全身模型逐帧动作');
     return {side,data,el,sprite,shell:el.querySelector('.sprite-shell'),hp:data.hp,maxHp:data.hp,energy:0,guardMeter:100,guardMax:100,guardRecoverAt:0,invulnUntil:0,crushedUntil:0,lastHit:false,cancelUntil:0,buffered:null,x:side==='p'?22:78,y:0,vy:0,onGround:true,busy:0,guard:false,dead:false,state:'idle',anim:{row:'idle',start:0,dur:920,loop:true},combo:0};
   }
   function startFight(){
-    if(gameMode==='online'){if(netRole!=='host'||!netReady)return;netSend({type:'start',hostIndex:selected,guestIndex:remoteSelected});startFightSetup(selected,remoteSelected,false);return}
+    if(gameMode==='online'){if(netRole!=='host'||!netReady)return;clearRoomListing();netSend({type:'start',hostIndex:selected,guestIndex:remoteSelected});startFightSetup(selected,remoteSelected,false);return}
     const choices=fighters.map((_,i)=>i).filter(i=>i!==selected),enemy=choices[Math.floor(Math.random()*choices.length)];startFightSetup(selected,enemy,false);
   }
   function startFightSetup(hostIndex,guestIndex,isGuest){
@@ -592,9 +625,10 @@
   function setGuestPaused(v){paused=v;$('#pauseOverlay').classList.toggle('hidden',!v)}
   function goSelect(notify){if(notify!==false&&gameMode==='online')netSend({type:'quit'});matchToken++;running=false;paused=false;events=[];clearInterval(timerId);clearInterval(aiId);cancelAnimationFrame(raf);cancelAnimationFrame(guestRaf);stopBgm();battleScreen.classList.add('hidden');selectScreen.classList.remove('hidden');renderRoster();refreshStartButton();window.scrollTo(0,0)}
   $('#quitBtn').addEventListener('click',goSelect);$('#changeBtn').addEventListener('click',goSelect);$('#rematchBtn').addEventListener('click',startFight);
-  $('#soloMode').addEventListener('click',()=>setMode('solo'));$('#onlineMode').addEventListener('click',()=>setMode('online'));$('#createRoom').addEventListener('click',createOnlineRoom);$('#resetRoom').addEventListener('click',()=>resetNetwork(true));$('#joinRoom').addEventListener('click',joinOnlineRoom);$('#inviteInput').addEventListener('keydown',e=>{if(e.key==='Enter')joinOnlineRoom()});
+  $('#soloMode').addEventListener('click',()=>setMode('solo'));$('#onlineMode').addEventListener('click',()=>{setMode('online');openLobby()});$('#createRoom').addEventListener('click',createOnlineRoom);$('#resetRoom').addEventListener('click',()=>resetNetwork(true));$('#refreshLobby').addEventListener('click',openLobby);$('#joinRoom').addEventListener('click',()=>joinOnlineRoom());$('#inviteInput').addEventListener('keydown',e=>{if(e.key==='Enter')joinOnlineRoom()});
   $('#copyCode').addEventListener('click',()=>{const code=$('#inviteCode').textContent;if(!code)return;navigator.clipboard.writeText(code).then(()=>setNetStatus('邀请码已复制，发给朋友即可。')).catch(()=>setNetStatus('复制失败，请长按邀请码手动复制。',true))});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&running&&!paused&&netRole!=='guest')setPaused(true)});
+  window.addEventListener('beforeunload',()=>{clearRoomListing();closeLobby()});
   document.addEventListener('pointerdown',unlockAudio,{capture:true,once:true});
   document.addEventListener('keydown',unlockAudio,{capture:true,once:true});
   $('#homeStart').addEventListener('click',()=>openSelect('solo'));$('#homeOnline').addEventListener('click',()=>openSelect('online'));$('#backHome').addEventListener('click',openHome);
