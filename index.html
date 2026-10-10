@@ -192,7 +192,8 @@
   
     /* Full-body model sheets: eight generated fighting poses per character in a 4 × 2 grid. */
     .fighter{height:clamp(104px,20vw,220px)}
-    .sprite{background-repeat:no-repeat;background-size:400% 200%;background-position:0 0;animation:none!important;image-rendering:auto;filter:drop-shadow(0 18px 8px rgba(0,0,0,.3))}
+    .sprite{overflow:hidden;background:none!important;animation:none!important;image-rendering:auto;filter:drop-shadow(0 18px 8px rgba(0,0,0,.3))}
+    .sprite-sheet{position:absolute;left:0;top:0;width:400%;height:200%;max-width:none;object-fit:fill;object-position:initial;transform-origin:0 0;pointer-events:none;user-select:none}
     .fighter.state-idle .sprite,.fighter.state-walk .sprite,.fighter.state-lp .sprite,.fighter.state-hp .sprite,.fighter.state-lk .sprite,.fighter.state-hk .sprite,.fighter.state-upper .sprite,.fighter.state-crouch .sprite,.fighter.state-jumpatk .sprite,.fighter.state-special .sprite,.fighter.state-hit .sprite,.fighter.state-ko .sprite,.fighter.state-guard .sprite{animation:none!important}
     .fighter.state-guard .sprite{filter:drop-shadow(0 18px 8px rgba(0,0,0,.28)) drop-shadow(0 0 12px #64e6ff)}
     .fighter.state-hit .sprite{filter:brightness(1.55) saturate(.55) drop-shadow(0 0 9px #fff)}
@@ -307,8 +308,8 @@
           <div class="hud-player cpu"><div class="hud-name" id="cName"></div><div class="hp-track"><div class="hp-fill" id="cHp"></div></div><div class="energy-track"><div class="energy-fill" id="cEnergy"></div></div><div class="guard-track" aria-label="对手防御槽"><div class="guard-fill" id="cGuard"></div></div></div>
         </div>
         <button class="pause-btn" id="pauseBtn" aria-label="暂停">Ⅱ</button>
-        <div class="fighter" id="playerFighter"><div class="fighter-shadow"></div><div class="sprite-shell"><div class="sprite" role="img" aria-label="玩家奶蛙全身模型逐帧动作"></div><i class="attack-arc"></i><div class="laugh-sprite"></div></div></div>
-        <div class="fighter" id="cpuFighter"><div class="fighter-shadow"></div><div class="sprite-shell"><div class="sprite" role="img" aria-label="电脑奶蛙全身模型逐帧动作"></div><i class="attack-arc"></i><div class="laugh-sprite"></div></div></div>
+        <div class="fighter" id="playerFighter"><div class="fighter-shadow"></div><div class="sprite-shell"><div class="sprite" role="img" aria-label="玩家奶蛙全身模型逐帧动作"><img class="sprite-sheet" alt="" decoding="sync"></div><i class="attack-arc"></i><div class="laugh-sprite"></div></div></div>
+        <div class="fighter" id="cpuFighter"><div class="fighter-shadow"></div><div class="sprite-shell"><div class="sprite" role="img" aria-label="电脑奶蛙全身模型逐帧动作"><img class="sprite-sheet" alt="" decoding="sync"></div><i class="attack-arc"></i><div class="laugh-sprite"></div></div></div>
         <div class="callout" id="callout"></div>
         <div class="pause-overlay hidden" id="pauseOverlay"><div class="modal"><h2>暂停</h2><p>奶蛙正在喘口气</p><div class="modal-actions"><button id="resumeBtn">继续对战</button><button id="quitBtn" class="secondary">重选角色</button></div></div></div>
         <div class="end-overlay hidden" id="endOverlay"><div class="modal"><h2 id="endTitle"></h2><p id="endText"></p><div class="modal-actions"><button id="rematchBtn">再来一局</button><button id="changeBtn" class="secondary">重选角色</button></div></div></div>
@@ -384,7 +385,8 @@
 
   const modelLoads=new Map(),resolvedModels=new Map(),sessionStats=new Map();
   let startingFight=false,matchRecorded=false;
-  function fighterAsset(kind,key){return 'assets/'+kind+'-'+key+'-clean'+(key==='tea'?'.png':'.webp')}
+  const assetRevision='20261010-model-fix-1';
+  function fighterAsset(kind,key){return 'assets/'+kind+'-'+key+'-clean'+(key==='tea'?'.png':'.webp')+'?v='+assetRevision}
   function warmModel(key){
     if(modelLoads.has(key))return modelLoads.get(key);
     const primary=fighterAsset('model',key),fallback=fighterAsset('model','classic');
@@ -536,9 +538,10 @@
   }
 
   function makeState(side,index){
-    const data=fighters[index],el=$(side==='p'?'#playerFighter':'#cpuFighter'),sprite=el.querySelector('.sprite');
-    sprite.style.backgroundImage='url("'+modelAsset(data.key)+'")';sprite.setAttribute('aria-label',data.name+'全身模型逐帧动作');
-    return {side,data,el,sprite,shell:el.querySelector('.sprite-shell'),hp:data.hp,maxHp:data.hp,energy:0,guardMeter:100,guardMax:100,guardRecoverAt:0,invulnUntil:0,crushedUntil:0,lastHit:false,cancelUntil:0,buffered:null,x:side==='p'?22:78,y:0,vy:0,onGround:true,busy:0,guard:false,dead:false,state:'idle',anim:{row:'idle',start:0,dur:920,loop:true},combo:0};
+    const data=fighters[index],el=$(side==='p'?'#playerFighter':'#cpuFighter'),sprite=el.querySelector('.sprite'),sheet=sprite.querySelector('.sprite-sheet');
+    sheet.onerror=()=>{if(sheet.dataset.fallbackUsed==='1')return;sheet.dataset.fallbackUsed='1';sheet.src=fighterAsset('model','classic')};
+    sheet.dataset.fallbackUsed='0';sheet.src=modelAsset(data.key);sprite.setAttribute('aria-label',data.name+'全身模型逐帧动作');
+    return {side,data,el,sprite,sheet,shell:el.querySelector('.sprite-shell'),hp:data.hp,maxHp:data.hp,energy:0,guardMeter:100,guardMax:100,guardRecoverAt:0,invulnUntil:0,crushedUntil:0,lastHit:false,cancelUntil:0,buffered:null,x:side==='p'?22:78,y:0,vy:0,onGround:true,busy:0,guard:false,dead:false,state:'idle',anim:{row:'idle',start:0,dur:920,loop:true},combo:0};
   }
   function startFight(){
     if(startingFight)return;
@@ -571,7 +574,7 @@
   function applySnapshot(data){if(!player||!cpu)return;sim=Number(data.sim)||sim;timeLeft=Number(data.time);$('#timer').textContent=timeLeft;applyFighterSnapshot(player,data.p);applyFighterSnapshot(cpu,data.c);faceEachOther();updateHud()}
   function guestRenderLoop(t){if(!running||netRole!=='guest')return;renderFrames(player);renderFrames(cpu);guestRaf=requestAnimationFrame(guestRenderLoop)}
   function setAnim(f,row,dur,loop,force){if(!force&&f.state===row&&f.anim&&f.anim.loop===loop)return;f.state=row;f.anim={row,start:sim,dur,loop:!!loop};setState(f,row)}
-  function setPoseFrame(sprite,pose){const col=pose%4,row=Math.floor(pose/4);sprite.style.backgroundPosition=(col*100/3)+'% '+(row*100)+'%'}
+  function setPoseFrame(sprite,pose){const col=pose%4,row=Math.floor(pose/4),sheet=sprite.querySelector('.sprite-sheet');if(sheet)sheet.style.transform='translate('+(-col*25)+'%,'+(-row*50)+'%)'}
   function renderFrames(f){const seq=poseFrames[f.anim.row]||poseFrames.idle,elapsed=Math.max(0,sim-f.anim.start),step=f.anim.loop?Math.floor(elapsed/(f.anim.dur/seq.length))%seq.length:Math.min(seq.length-1,Math.floor(elapsed/(f.anim.dur/seq.length)));setPoseFrame(f.sprite,seq[step])}
   function updatePlayer(dt){if(player.dead)return;if(sim<player.crushedUntil){player.guard=false;return}if(sim<player.busy){player.guard=false;return}player.guard=held.guard&&player.onGround;if(player.guard){setAnim(player,'guard',500,true);return}let dir=(held.right?1:0)-(held.left?1:0);if(held.down&&player.onGround){setAnim(player,'duck',640,true)}else if(dir){player.x+=dir*player.data.speed*dt*2.45;setAnim(player,'walk',480,true)}else if(player.onGround)setAnim(player,'idle',920,true)}
   function updateCPU(dt){if(cpu.dead)return;if(sim<cpu.crushedUntil){cpu.guard=false;return}if(gameMode==='online'){if(sim<cpu.busy){cpu.guard=false;return}cpu.guard=remoteHeld.guard&&cpu.onGround;if(cpu.guard){setAnim(cpu,'guard',500,true);return}let dir=(remoteHeld.right?1:0)-(remoteHeld.left?1:0);if(remoteHeld.down&&cpu.onGround)setAnim(cpu,'duck',640,true);else if(dir){cpu.x+=dir*cpu.data.speed*dt*2.45;setAnim(cpu,'walk',480,true)}else if(cpu.onGround)setAnim(cpu,'idle',920,true);return}if(cpu.guard){setAnim(cpu,'guard',500,true);return}if(sim<cpu.busy)return;const d=player.x-cpu.x,preferred=cpu.data.special==='cup'?31:cpu.data.special==='splash'?25:15;if(Math.abs(d)>preferred){cpu.x+=Math.sign(d)*cpu.data.speed*dt*1.5;setAnim(cpu,'walk',520,true)}else setAnim(cpu,'idle',920,true)}
