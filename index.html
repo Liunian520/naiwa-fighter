@@ -192,6 +192,9 @@
     .fighter.state-guard .sprite{filter:drop-shadow(0 18px 8px rgba(0,0,0,.28)) drop-shadow(0 0 12px #64e6ff)}
     .fighter.state-hit .sprite{filter:brightness(1.55) saturate(.55) drop-shadow(0 0 9px #fff)}
     .fighter.state-ko .sprite{filter:grayscale(.4) brightness(.8) drop-shadow(0 14px 7px rgba(0,0,0,.3))}
+    .fighter.state-duck .sprite{transform:translateY(18%) scale(1.08,.72);filter:drop-shadow(0 12px 6px rgba(0,0,0,.3))}
+    .fighter.state-duck .fighter-shadow{transform:scale(1.18,.82);opacity:.48}
+    .fighter.state-crouch .sprite{transform:translateY(11%) scale(1.04,.84)}
     .fighter.state-victory .sprite{display:none}
     .control-btn{font-size:14px}.control-btn.jump{font-size:14px}.control-btn.crouch{background:#344157}.control-btn.upper{background:#6b4dad}.control-btn.kick{border-radius:42% 58% 50% 50%}
     .move-controls,.attack-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));justify-items:center;gap:8px}.attack-controls{grid-template-columns:repeat(3,minmax(0,1fr))}.attack-controls .special{grid-column:3;grid-row:1 / span 2;height:100%;border-radius:18px}.attack-controls .kick{grid-row:2}.special-fx{position:absolute;z-index:24;width:120px;height:120px;transform:translate(-50%,0);pointer-events:none}.special-fx i{position:absolute;display:block}
@@ -303,7 +306,7 @@
           <button class="control-btn" data-hold="left" aria-label="向左">◀</button>
           <button class="control-btn jump" data-action="jump" aria-label="跳跃">跳</button>
           <button class="control-btn" data-hold="right" aria-label="向右">▶</button>
-          <button class="control-btn crouch" data-hold="down" aria-label="下蹲">蹲</button>
+          <button class="control-btn crouch" data-hold="down" aria-label="下蹲，闪避上段拳并使出下段攻击">蹲</button>
           <button class="control-btn upper" data-action="upper" aria-label="上勾拳">升<span class="control-label">对空</span></button>
           <button class="control-btn guard" data-hold="guard">防<span class="control-label">格挡</span></button><button class="control-btn roll" data-action="roll">滚<span class="control-label">闪避</span></button>
         </div>
@@ -341,7 +344,7 @@
     {key:'beauty',name:'美人蛙',type:'技巧',desc:'水花魅影牵制，步伐飘逸',hp:99,power:13.6,speed:13.8,defense:.98,skill:'碧波魅影',special:'splash',fx:'water'}
   ];
   const poseFrames={
-    idle:[0,0,0,0,0,0,0,0],guard:[0,0,0,0,0,0,0,0],walk:[0,1,0,1,0,1,0,1],
+    idle:[0,0,0,0,0,0,0,0],guard:[0,0,0,0,0,0,0,0],duck:[0,0,0,0,0,0,0,0],walk:[0,1,0,1,0,1,0,1],
     lp:[0,2,2,2,2,2,0,0],hp:[0,1,2,3,3,3,2,0],
     lk:[0,4,4,4,4,4,0,0],hk:[0,1,4,5,5,5,4,0],
     upper:[0,2,3,3,3,2,0,0],crouch:[0,4,4,0,0,0,0,0],jumpatk:[1,4,5,5,4,1,0,0],
@@ -368,7 +371,7 @@
   }
 
   const warmedModels=new Set();
-  function fighterAsset(kind,key){return 'assets/'+kind+'-'+key+(key==='tea'?'.png':'.webp')}
+  function fighterAsset(kind,key){return 'assets/'+kind+'-'+key+'-clean'+(key==='tea'?'.png':'.webp')}
   function warmModel(key){if(warmedModels.has(key))return;warmedModels.add(key);const img=new Image();img.decoding='async';img.src=fighterAsset('model',key)}
   function openSelect(mode){homeScreen.classList.add('hidden');selectScreen.classList.remove('hidden');setMode(mode||'solo');if(mode==='online')openLobby();window.scrollTo(0,0)}
   function openHome(){if(running)return;selectScreen.classList.add('hidden');battleScreen.classList.add('hidden');homeScreen.classList.remove('hidden');closeLobby();window.scrollTo(0,0)}
@@ -534,13 +537,13 @@
   function setAnim(f,row,dur,loop,force){if(!force&&f.state===row&&f.anim&&f.anim.loop===loop)return;f.state=row;f.anim={row,start:sim,dur,loop:!!loop};setState(f,row)}
   function setPoseFrame(sprite,pose){const col=pose%4,row=Math.floor(pose/4);sprite.style.backgroundPosition=(col*100/3)+'% '+(row*100)+'%'}
   function renderFrames(f){const seq=poseFrames[f.anim.row]||poseFrames.idle,elapsed=Math.max(0,sim-f.anim.start),step=f.anim.loop?Math.floor(elapsed/(f.anim.dur/seq.length))%seq.length:Math.min(seq.length-1,Math.floor(elapsed/(f.anim.dur/seq.length)));setPoseFrame(f.sprite,seq[step])}
-  function updatePlayer(dt){if(player.dead)return;if(sim<player.crushedUntil){player.guard=false;return}player.guard=held.guard&&player.onGround;if(sim<player.busy)return;if(player.guard){setAnim(player,'guard',500,true);return}if(sim<player.busy)return;let dir=(held.right?1:0)-(held.left?1:0);if(held.down&&player.onGround){setAnim(player,'crouch',640,true)}else if(dir){player.x+=dir*player.data.speed*dt*2.45;setAnim(player,'walk',480,true)}else if(player.onGround)setAnim(player,'idle',920,true)}
-  function updateCPU(dt){if(cpu.dead)return;if(sim<cpu.crushedUntil){cpu.guard=false;return}if(gameMode==='online'){cpu.guard=remoteHeld.guard&&cpu.onGround;if(sim<cpu.busy)return;if(cpu.guard){setAnim(cpu,'guard',500,true);return}let dir=(remoteHeld.right?1:0)-(remoteHeld.left?1:0);if(remoteHeld.down&&cpu.onGround)setAnim(cpu,'crouch',640,true);else if(dir){cpu.x+=dir*cpu.data.speed*dt*2.45;setAnim(cpu,'walk',480,true)}else if(cpu.onGround)setAnim(cpu,'idle',920,true);return}if(cpu.guard){setAnim(cpu,'guard',500,true);return}if(sim<cpu.busy)return;const d=player.x-cpu.x,preferred=cpu.data.special==='cup'?31:cpu.data.special==='splash'?25:15;if(Math.abs(d)>preferred){cpu.x+=Math.sign(d)*cpu.data.speed*dt*1.5;setAnim(cpu,'walk',520,true)}else setAnim(cpu,'idle',920,true)}
+  function updatePlayer(dt){if(player.dead)return;if(sim<player.crushedUntil){player.guard=false;return}player.guard=held.guard&&player.onGround;if(sim<player.busy)return;if(player.guard){setAnim(player,'guard',500,true);return}if(sim<player.busy)return;let dir=(held.right?1:0)-(held.left?1:0);if(held.down&&player.onGround){setAnim(player,'duck',640,true)}else if(dir){player.x+=dir*player.data.speed*dt*2.45;setAnim(player,'walk',480,true)}else if(player.onGround)setAnim(player,'idle',920,true)}
+  function updateCPU(dt){if(cpu.dead)return;if(sim<cpu.crushedUntil){cpu.guard=false;return}if(gameMode==='online'){cpu.guard=remoteHeld.guard&&cpu.onGround;if(sim<cpu.busy)return;if(cpu.guard){setAnim(cpu,'guard',500,true);return}let dir=(remoteHeld.right?1:0)-(remoteHeld.left?1:0);if(remoteHeld.down&&cpu.onGround)setAnim(cpu,'duck',640,true);else if(dir){cpu.x+=dir*cpu.data.speed*dt*2.45;setAnim(cpu,'walk',480,true)}else if(cpu.onGround)setAnim(cpu,'idle',920,true);return}if(cpu.guard){setAnim(cpu,'guard',500,true);return}if(sim<cpu.busy)return;const d=player.x-cpu.x,preferred=cpu.data.special==='cup'?31:cpu.data.special==='splash'?25:15;if(Math.abs(d)>preferred){cpu.x+=Math.sign(d)*cpu.data.speed*dt*1.5;setAnim(cpu,'walk',520,true)}else setAnim(cpu,'idle',920,true)}
   function physics(f,dt){if(!f.onGround){f.vy-=112*dt;f.y+=f.vy*dt;if(f.y<=0){f.y=0;f.vy=0;f.onGround=true;if(sim>=f.busy)setAnim(f,'idle',920,true)}}f.x=Math.max(7,Math.min(93,f.x))}
   function separateFighters(){if(!player||!cpu)return;const gap=cpu.x-player.x;if(Math.abs(gap)<7){const push=(7-Math.abs(gap))/2*(gap>=0?1:-1);player.x-=push;cpu.x+=push}}
   function renderState(f){f.el.style.left=f.x+'%';f.el.style.bottom='calc(20% + '+f.y+'px)';f.el.classList.toggle('jumping',!f.onGround);renderFrames(f)}
   function faceEachOther(){player.shell.style.transform='scaleX('+(player.x<=cpu.x?1:-1)+')';cpu.shell.style.transform='scaleX('+(cpu.x<=player.x?1:-1)+')'}
-  function setState(f,state){['idle','walk','lp','hp','lk','hk','upper','crouch','jumpatk','special','hit','ko','guard','roll','victory'].forEach(s=>f.el.classList.toggle('state-'+s,s===state))}
+  function setState(f,state){['idle','duck','walk','lp','hp','lk','hk','upper','crouch','jumpatk','special','hit','ko','guard','roll','victory'].forEach(s=>f.el.classList.toggle('state-'+s,s===state))}
 
   function jump(f){if(!running||paused||!f.onGround||sim<f.busy)return;f.onGround=false;f.vy=62+(f.data.key==='bounce'?17:0);f.busy=sim+390;setAnim(f,'jumpatk',620,false,true);playSound('andy',.24)}
   const moveCfg={
@@ -553,7 +556,9 @@
   function regenGuard(f,dt){if(!f||f.dead||f.guard||sim<f.guardRecoverAt||f.guardMeter>=f.guardMax)return;f.guardMeter=Math.min(f.guardMax,f.guardMeter+9*dt);updateHud()}
   function runBuffered(f){if(!f||!f.buffered)return;if(sim>f.buffered.until){f.buffered=null;return}if(sim>=f.busy||f.lastHit&&sim<=f.cancelUntil){const k=f.buffered.kind;f.buffered=null;f.busy=sim;attack(f,k)}}
   function roll(f){if(!running||paused||!f||f.dead||!f.onGround||sim<f.busy)return;const dir=f===player?((held.right?1:0)-(held.left?1:0)||1):((remoteHeld.right?1:0)-(remoteHeld.left?1:0)||-1);f.busy=sim+550;f.invulnUntil=sim+400;setAnim(f,'roll',550,false,true);const start=f.x;queue(70,()=>f.x=Math.max(7,Math.min(93,start+dir*12)));queue(550,()=>{if(!f.dead)setAnim(f,'idle',920,true,true)});playSound('andy',.18)}
-  function canBlock(target,kind){if(!target.guard||!target.onGround||sim<target.crushedUntil)return false;const low=kind==='crouch',high=kind==='jumpatk';const crouching=target===player?held.down:remoteHeld.down;if(low)return crouching;if(high)return !crouching;return true}
+  function isCrouching(target){let inputDown;if(gameMode==='online'&&netRole==='guest')inputDown=target===cpu?held.down:false;else inputDown=target===player?held.down:remoteHeld.down;return !!(target.onGround&&(inputDown||target.state==='duck'||target.state==='crouch'))}
+  function evadesStandingPunch(target,kind){return isCrouching(target)&&(kind==='lp'||kind==='hp'||kind==='upper')}
+  function canBlock(target,kind){if(!target.guard||!target.onGround||sim<target.crushedUntil)return false;const low=kind==='crouch',high=kind==='jumpatk',crouching=isCrouching(target);if(low)return crouching;if(high)return !crouching;return true}
   function guardCrush(target){target.guardMeter=0;target.guard=false;target.crushedUntil=sim+1250;target.busy=target.crushedUntil;setAnim(target,'hit',900,false,true);toast('破防！');showCallout('崩防');hitFreeze(200,true);queue(1300,()=>{target.guardMeter=42;if(!target.dead)setAnim(target,'idle',920,true,true);updateHud()})}
 
   function attack(f,kind,hitClaim){
@@ -563,7 +568,7 @@
     const cfg=moveCfg[kind];if(!cfg)return;
     let dur=cfg.dur*(12/f.data.speed*.18+.82);if(f.data.key==='lolita'&&(kind==='lp'||kind==='lk'))dur*=.82;if(f.data.key==='worker'&&(kind==='hp'||kind==='hk'))dur*=1.12;
     f.busy=sim+dur;setAnim(f,kind,dur,false,true);playSound(kind==='hp'||kind==='hk'?'sfx3':'sfx1',.18);
-    queue(cfg.hit,()=>{if(!running||f.dead)return;const landed=(sim>=target.invulnUntil)&&(typeof hitClaim==='boolean'?hitClaim:Math.abs(f.x-target.x)<=cfg.range);if(landed){let dmg=Math.round(f.data.power*cfg.mul*(.92+Math.random()*.14));dealDamage(target,dmg,f,kind,cfg);if(kind==='upper'&&target.hp>0){target.onGround=false;target.vy=42}}});
+    queue(cfg.hit,()=>{if(!running||f.dead)return;const landed=(sim>=target.invulnUntil)&&(typeof hitClaim==='boolean'?hitClaim:Math.abs(f.x-target.x)<=cfg.range);if(landed){if(evadesStandingPunch(target,kind)){toast('下蹲闪避！');return}let dmg=Math.round(f.data.power*cfg.mul*(.92+Math.random()*.14));dealDamage(target,dmg,f,kind,cfg);if(kind==='upper'&&target.hp>0){target.onGround=false;target.vy=42}}});
     queue(dur+8,()=>{if(!f.dead&&sim>=f.busy&&f.onGround)setAnim(f,'idle',920,true)});
   }
   function specialAttack(f,target,hitClaim){
