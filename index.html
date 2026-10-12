@@ -856,57 +856,146 @@ safe-buffer/index.js:
 
 </script>
 <script>
+/*NAIWA_GLB_V2*/
 (function(){
-  const API='https://naiwa-leaderboard.3609055290.workers.dev';
-  const origRender = window.renderRanking;
-  // Override to show global leaderboard
-  function renderGlobalRanking(){
-    const board=document.querySelector('#rankBoard');
-    if(!board) return;
-    board.innerHTML='<div class="rank-empty">正在加载全球榜...</div>';
-    fetch(API+'/api/leaderboard?period=all').then(r=>r.json()).then(d=>{
-      const list=(d&&d.leaderboard)||[];
-      if(!list.length){board.innerHTML='<div class="rank-empty">全球榜还没有数据。<br>打完一局就会上传成绩。</div>';return;}
-      board.innerHTML='';
-      list.slice(0,50).forEach((p,i)=>{
-        const e=document.createElement('article');e.className='rank-row';
-        e.innerHTML='<span class="rank-pos">'+(i+1)+'</span><span class="rank-fighter"><b>'+escapeHtml(p.name||'无名氏')+'</b><small>'+(p.region||'未知')+' · '+p.matches+' 局</small></span><span class="rank-metric">'+p.wins+'<small>胜场</small></span><span class="rank-metric">'+Math.round((p.winRate||0)*100)+'%<small>胜率</small></span><span class="rank-metric">'+(p.bestStreak||0)+'<small>最高连胜</small></span>';
-        board.appendChild(e);
-      });
-      const note=document.createElement('div');note.className='rank-empty';note.style.marginTop='12px';
-      note.textContent='全球实时榜 · 共 '+d.total+' 位玩家';
-      board.appendChild(note);
-    }).catch(()=>{
-      board.innerHTML='<div class="rank-empty">全球榜加载失败，显示本次战绩。<br></div>';
-      if(origRender) origRender();
+  'use strict';
+  var API='https://naiwa-leaderboard.3609055290.workers.dev';
+  var NICK_KEY='naiwaNick';
+  var PERIODS=[['all','总榜'],['daily','日榜'],['weekly','周榜'],['monthly','月榜']];
+  var geoLabel=null, geoReady=false;
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function getNick(){try{return localStorage.getItem(NICK_KEY)||'';}catch(e){return '';}}
+  function setNick(n){try{localStorage.setItem(NICK_KEY,n);}catch(e){}}
+  function fetchGeo(){
+    if(geoReady)return;geoReady=true;
+    fetch(API+'/api/geo').then(function(r){return r.json();}).then(function(d){
+      geoLabel=(d&&d.label)||'未知';
+    }).catch(function(){geoLabel='未知';});
+  }
+  fetchGeo();
+
+  function toast(msg){
+    var t=document.getElementById('naiwaToast');
+    if(!t){
+      t=document.createElement('div');t.id='naiwaToast';
+      t.style.cssText='position:fixed;left:50%;bottom:76px;transform:translateX(-50%);background:rgba(20,20,28,.92);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;z-index:99999;max-width:86vw;text-align:center;pointer-events:none;opacity:0;transition:opacity .3s;';
+      document.body.appendChild(t);
+    }
+    t.textContent=msg;t.style.opacity='1';
+    clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0';},2800);
+  }
+
+  // ---- 结算弹层里加一行"上榜昵称"（不打断胜利演出，随手可填）----
+  function injectNickRow(){
+    var modal=document.querySelector('#endOverlay .modal');
+    if(!modal||document.getElementById('naiwaNickRow'))return;
+    var actions=modal.querySelector('.modal-actions');
+    var row=document.createElement('div');row.id='naiwaNickRow';
+    row.style.cssText='margin:10px 0 2px;display:flex;gap:8px;align-items:center;justify-content:center;font-size:13px;';
+    row.innerHTML='<span style="opacity:.75">上榜昵称</span><input id="naiwaNickInput" maxlength="12" placeholder="无名蛙" value="'+esc(getNick())+'" style="width:110px;padding:6px 8px;border-radius:8px;border:1px solid #888;background:rgba(255,255,255,.06);color:inherit;font-size:14px;">';
+    modal.insertBefore(row,actions||null);
+    var input=row.querySelector('input');
+    input.addEventListener('change',function(){
+      var v=input.value.trim().slice(0,12);
+      if(v){setNick(v);toast('昵称已保存：'+v+'，下局起生效');}
     });
   }
-  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  // Replace the global renderRanking
-  const check=setInterval(()=>{
-    if(typeof renderRanking==='function'){
-      // Patch by re-defining openRanking to use global
-      const origOpen = window.openRanking;
-      window.openRanking=function(){
-        document.querySelector('#homeScreen').classList.add('hidden');
-        document.querySelector('#selectScreen').classList.add('hidden');
-        document.querySelector('#rankScreen').classList.remove('hidden');
-        renderGlobalRanking();
-        window.scrollTo(0,0);
-      };
-      // Update title
-      const h1=document.querySelector('.rank-head h1');
-      if(h1) h1.textContent='全球排行榜';
-      const sub=document.querySelector('.rank-head p');
-      if(sub) sub.textContent='全服实时排名 · 按胜场排序';
-      clearInterval(check);
+
+  // ---- 写：对局结束自动上传（由注入点 window.__naiwaMatchEnd 调用）----
+  window.__naiwaMatchEnd=function(info){
+    if(!info||!info.score)return;
+    var score=info.score;
+    injectNickRow();
+    var nick=getNick();
+    var payload={
+      player:nick||('无名蛙'+Math.floor(Math.random()*9000+1000)),
+      score:Math.max(0,Math.min(10000,Math.round(score.total||0))),
+      character:String(info.character||'').slice(0,20),
+      grade:String(score.grade||'D').slice(0,2),
+      ipLocation:String(geoLabel||'未知').slice(0,30),
+      duration:Math.max(0,Math.min(300,score.elapsed||0)),
+      maxCombo:Math.max(0,Math.min(999,score.maxCombo||0)),
+      won:score.won===true,
+      finishedWithSuper:(score.specialHits||0)>0
+    };
+    fetch(API+'/api/score',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d&&d.ok){
+          var msg='成绩已上传全球榜'+(d.rank?(' · 第 '+d.rank+' 名'):'');
+          if(d.newAchievements&&d.newAchievements.length){
+            msg+=' · 解锁「'+d.newAchievements.map(function(a){return a.name;}).join('」「')+'」';
+          }
+          toast(msg);
+        }
+      }).catch(function(){/* 静默：不打扰对局 */});
+  };
+
+  // ---- 读：渲染全球榜（替代本地"本次战绩榜"）----
+  window.__naiwaRenderGlobal=function(period){
+    period=period||window.__naiwaPeriod||'all';
+    window.__naiwaPeriod=period;
+    var h1=document.querySelector('.rank-head h1');if(h1)h1.textContent='全球排行榜';
+    var sub=document.querySelector('.rank-head p');if(sub)sub.textContent='全服实时排名 · 按单局评分排序';
+    var tip=document.querySelector('.rank-tip');
+    if(tip)tip.innerHTML='全球榜由云端实时同步，打完一局自动上传成绩。<a href="javascript:void 0" id="naiwaRename" style="margin-left:6px">改名</a>';
+    var board=document.getElementById('rankBoard');if(!board)return;
+    var tabs=document.getElementById('naiwaTabs');
+    if(!tabs){
+      tabs=document.createElement('div');tabs.id='naiwaTabs';
+      tabs.style.cssText='display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;';
+      board.parentNode.insertBefore(tabs,board);
     }
-  },500);
-  // Auto-submit score after match
-  window.submitGlobalScore=function(name,wins,matches){
-    fetch(API+'/api/score',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({player:name||('玩家'+Math.floor(Math.random()*9000+1000)),wins:wins||0,matches:matches||1,region:'未知'})
-    }).catch(()=>{});
+    tabs.innerHTML='';
+    PERIODS.forEach(function(p){
+      var b=document.createElement('button');b.type='button';b.textContent=p[1];
+      b.style.cssText='padding:6px 14px;border-radius:999px;border:1px solid #888;font-size:13px;cursor:pointer;'+
+        (p[0]===period?'background:#ffd54a;border-color:#ffd54a;color:#3a2b00;font-weight:700;':'background:transparent;color:inherit;');
+      b.onclick=function(){window.__naiwaRenderGlobal(p[0]);};
+      tabs.appendChild(b);
+    });
+    board.innerHTML='<div class="rank-empty">正在加载全球榜…</div>';
+    fetch(API+'/api/leaderboard?period='+encodeURIComponent(period)+'&limit=50')
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var rn=document.getElementById('naiwaRename');
+        if(rn)rn.onclick=function(){
+          var v=window.prompt('输入新的上榜昵称（最多12字）',getNick());
+          if(v){v=v.trim().slice(0,12);if(v){setNick(v);toast('昵称已保存：'+v+'，下局起生效');}}
+        };
+        var list=(d&&d.leaderboard)||[];
+        if(!list.length){
+          board.innerHTML='<div class="rank-empty">全球榜还没有数据。<br>打完一局就会自动上传成绩。</div>';return;
+        }
+        board.innerHTML='';
+        list.forEach(function(p,i){
+          var e=document.createElement('article');e.className='rank-row';
+          var nm=esc(p.name||p.player||'无名氏');
+          var rg=esc(p.region||p.ipLocation||'未知');
+          var ch=p.character?esc(p.character)+' · ':'';
+          var sub2,metrics;
+          if(p.wins!==undefined||p.matches!==undefined){
+            sub2=rg+' · '+(p.matches||0)+' 局';
+            metrics='<span class="rank-metric">'+(p.wins||0)+'<small>胜场</small></span>'
+              +'<span class="rank-metric">'+(p.winRate!==undefined?Math.round(p.winRate*100)+'%':'—')+'<small>胜率</small></span>'
+              +'<span class="rank-metric">'+(p.bestStreak||0)+'<small>最高连胜</small></span>';
+          }else{
+            sub2=ch+rg;
+            metrics='<span class="rank-metric">'+(p.score||0)+'<small>评分</small></span>'
+              +'<span class="rank-metric">'+esc(p.grade||'—')+'<small>评级</small></span>'
+              +'<span class="rank-metric">'+(p.maxCombo||0)+'<small>最高连击</small></span>';
+          }
+          e.innerHTML='<span class="rank-pos">'+(i+1)+'</span><span class="rank-fighter" style="display:flex;align-items:center;gap:8px"><span style="font-size:26px">🐸</span><span><b>'+nm+'</b><small>'+sub2+'</small></span></span>'+metrics;
+          board.appendChild(e);
+        });
+        var note=document.createElement('div');note.className='rank-empty';note.style.marginTop='12px';
+        note.textContent='全球实时榜 · 共 '+((d&&d.total)||list.length)+' 条上榜成绩';
+        board.appendChild(note);
+      })
+      .catch(function(){
+        board.innerHTML='<div class="rank-empty">全球榜加载失败，请检查网络后重试。</div>';
+      });
   };
 })();
 </script>
