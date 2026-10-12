@@ -855,5 +855,61 @@ safe-buffer/index.js:
 })();
 
 </script>
+<script>
+(function(){
+  const API='https://naiwa-leaderboard.3609055290.workers.dev';
+  const origRender = window.renderRanking;
+  // Override to show global leaderboard
+  function renderGlobalRanking(){
+    const board=document.querySelector('#rankBoard');
+    if(!board) return;
+    board.innerHTML='<div class="rank-empty">正在加载全球榜...</div>';
+    fetch(API+'/api/leaderboard?period=all').then(r=>r.json()).then(d=>{
+      const list=(d&&d.leaderboard)||[];
+      if(!list.length){board.innerHTML='<div class="rank-empty">全球榜还没有数据。<br>打完一局就会上传成绩。</div>';return;}
+      board.innerHTML='';
+      list.slice(0,50).forEach((p,i)=>{
+        const e=document.createElement('article');e.className='rank-row';
+        e.innerHTML='<span class="rank-pos">'+(i+1)+'</span><span class="rank-fighter"><b>'+escapeHtml(p.name||'无名氏')+'</b><small>'+(p.region||'未知')+' · '+p.matches+' 局</small></span><span class="rank-metric">'+p.wins+'<small>胜场</small></span><span class="rank-metric">'+Math.round((p.winRate||0)*100)+'%<small>胜率</small></span><span class="rank-metric">'+(p.bestStreak||0)+'<small>最高连胜</small></span>';
+        board.appendChild(e);
+      });
+      const note=document.createElement('div');note.className='rank-empty';note.style.marginTop='12px';
+      note.textContent='全球实时榜 · 共 '+d.total+' 位玩家';
+      board.appendChild(note);
+    }).catch(()=>{
+      board.innerHTML='<div class="rank-empty">全球榜加载失败，显示本次战绩。<br></div>';
+      if(origRender) origRender();
+    });
+  }
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  // Replace the global renderRanking
+  const check=setInterval(()=>{
+    if(typeof renderRanking==='function'){
+      // Patch by re-defining openRanking to use global
+      const origOpen = window.openRanking;
+      window.openRanking=function(){
+        document.querySelector('#homeScreen').classList.add('hidden');
+        document.querySelector('#selectScreen').classList.add('hidden');
+        document.querySelector('#rankScreen').classList.remove('hidden');
+        renderGlobalRanking();
+        window.scrollTo(0,0);
+      };
+      // Update title
+      const h1=document.querySelector('.rank-head h1');
+      if(h1) h1.textContent='全球排行榜';
+      const sub=document.querySelector('.rank-head p');
+      if(sub) sub.textContent='全服实时排名 · 按胜场排序';
+      clearInterval(check);
+    }
+  },500);
+  // Auto-submit score after match
+  window.submitGlobalScore=function(name,wins,matches){
+    fetch(API+'/api/score',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({player:name||('玩家'+Math.floor(Math.random()*9000+1000)),wins:wins||0,matches:matches||1,region:'未知'})
+    }).catch(()=>{});
+  };
+})();
+</script>
+
 </body>
 </html>
